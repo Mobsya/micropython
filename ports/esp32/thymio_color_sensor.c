@@ -36,7 +36,7 @@ T_RawColor raw_temp;
 /// \moduleref thymio
 /// \class COLOR_SENSOR - COLOR_SENSOR object
 ///
-/// The COLOR_SENSOR object get color_sensor accelerometer and gyroscope values.
+/// The COLOR_SENSOR object get color_sensor values.
 
 typedef struct _thymio_color_sensor_obj_t {
     mp_obj_base_t base;
