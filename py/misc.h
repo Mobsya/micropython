@@ -51,7 +51,17 @@ typedef unsigned int uint;
 #define MP_STRINGIFY(x) MP_STRINGIFY_HELPER(x)
 
 // Static assertion macro
+// #if __cplusplus
+// #define MP_STATIC_ASSERT(cond) static_assert((cond), #cond)
+// #elif __GNUC__ >= 5 || __STDC_VERSION__ >= 201112L
+// #define MP_STATIC_ASSERT(cond) _Static_assert((cond), #cond)
+// #else
 #define MP_STATIC_ASSERT(cond) ((void)sizeof(char[1 - 2 * !(cond)]))
+// #endif
+#if __clang__
+#pragma GCC diagnostic ignored "-Wgnu-folding-constant"
+#endif
+
 #if defined(_MSC_VER)
 #define MP_STATIC_ASSERT_NOT_MSC(cond) (1)
 #else

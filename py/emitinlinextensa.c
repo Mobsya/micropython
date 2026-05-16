@@ -116,7 +116,7 @@ STATIC bool emit_inline_xtensa_label(emit_inline_asm_t *emit, mp_uint_t label_nu
 }
 
 typedef struct _reg_name_t { byte reg;
-                             byte name[3];
+                             byte name[4];
 } reg_name_t;
 STATIC const reg_name_t reg_name_table[] = {
     {0, "a0\0"},
@@ -129,12 +129,12 @@ STATIC const reg_name_t reg_name_table[] = {
     {7, "a7\0"},
     {8, "a8\0"},
     {9, "a9\0"},
-    {10, "a10"},
-    {11, "a11"},
-    {12, "a12"},
-    {13, "a13"},
-    {14, "a14"},
-    {15, "a15"},
+    {10, "a10\0"},
+    {11, "a11\0"},
+    {12, "a12\0"},
+    {13, "a13\0"},
+    {14, "a14\0"},
+    {15, "a15\0"},
 };
 
 // return empty string in case of error, so we can attempt to parse the string

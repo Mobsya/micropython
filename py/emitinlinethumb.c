@@ -147,7 +147,7 @@ STATIC bool emit_inline_thumb_label(emit_inline_asm_t *emit, mp_uint_t label_num
 }
 
 typedef struct _reg_name_t { byte reg;
-                             byte name[3];
+                             byte name[4];
 } reg_name_t;
 STATIC const reg_name_t reg_name_table[] = {
     {0, "r0\0"},
@@ -160,12 +160,12 @@ STATIC const reg_name_t reg_name_table[] = {
     {7, "r7\0"},
     {8, "r8\0"},
     {9, "r9\0"},
-    {10, "r10"},
-    {11, "r11"},
-    {12, "r12"},
-    {13, "r13"},
-    {14, "r14"},
-    {15, "r15"},
+    {10, "r10\0"},
+    {11, "r11\0"},
+    {12, "r12\0"},
+    {13, "r13\0"},
+    {14, "r14\0"},
+    {15, "r15\0"},
     {10, "sl\0"},
     {11, "fp\0"},
     {13, "sp\0"},
@@ -365,7 +365,7 @@ STATIC int get_arg_label(emit_inline_asm_t *emit, const char *op, mp_parse_node_
 }
 
 typedef struct _cc_name_t { byte cc;
-                            byte name[2];
+                            byte name[3];
 } cc_name_t;
 STATIC const cc_name_t cc_name_table[] = {
     { ASM_THUMB_CC_EQ, "eq" },
@@ -385,7 +385,7 @@ STATIC const cc_name_t cc_name_table[] = {
 };
 
 typedef struct _format_4_op_t { byte op;
-                                char name[3];
+                                char name[4];
 } format_4_op_t;
 #define X(x) (((x) >> 4) & 0xff) // only need 1 byte to distinguish these ops
 STATIC const format_4_op_t format_4_op_table[] = {
@@ -425,7 +425,7 @@ STATIC const format_9_10_op_t format_9_10_op_table[] = {
 // actual opcodes are: 0xee00 | op.hi_nibble, 0x0a00 | op.lo_nibble
 typedef struct _format_vfp_op_t {
     byte op;
-    char name[3];
+    char name[4];
 } format_vfp_op_t;
 STATIC const format_vfp_op_t format_vfp_op_table[] = {
     { 0x30, "add" },
