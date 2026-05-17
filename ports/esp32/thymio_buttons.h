@@ -27,7 +27,7 @@
 #define MICROPY_INCLUDED_THYMIO_BUTTONS_H
 
 void buttons_init(void);
-uint8_t* buttons_get_status(void);
+// uint8_t* buttons_get_status(void);
 
 extern const mp_obj_type_t thymio_buttons_type;
 

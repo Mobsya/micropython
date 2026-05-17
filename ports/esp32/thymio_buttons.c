@@ -31,8 +31,6 @@
 #include "thymio_buttons.h"
 #include "../../../../../main/buttons.h"
 
-uint8_t* status_temp;
-
 /// \moduleref thymio
 /// \class BUTTONS - BUTTONS object
 ///
@@ -45,9 +43,9 @@ typedef struct _thymio_buttons_obj_t {
 void buttons_init(void) {
 }
 
-uint8_t* buttons_get_status(void) {
-    return Buttons_GetStatus();
-}
+// uint8_t* buttons_get_status(void) {
+//     return Buttons_GetStatus();
+// }
 
 /******************************************************************************/
 /* MicroPython bindings                                                       */
@@ -68,18 +66,42 @@ STATIC mp_obj_t buttons_make_new(const mp_obj_type_t *type, size_t n_args, size_
 /// Get buttons status (1 = pressed, 0 = not pressed). The returned list correspond to [BACKWARD, LEFT, CENTER, FORWARD, RIGHT].
 mp_obj_t buttons_get_status_values(mp_obj_t self_in) {
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(5, NULL));
-    status_temp = buttons_get_status();
-    data->items[0] = mp_obj_new_int(status_temp[0]);
-    data->items[1] = mp_obj_new_int(status_temp[1]);
-    data->items[2] = mp_obj_new_int(status_temp[2]);
-    data->items[3] = mp_obj_new_int(status_temp[3]);
-    data->items[4] = mp_obj_new_int(status_temp[4]);
+    uint8_t* status = Buttons_GetStatus();
+    for (int i = 0; i < 5; i++) {
+        data->items[i] = mp_obj_new_int(status[i]);
+    }
     return MP_OBJ_FROM_PTR(data);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(buttons_get_status_values_obj, buttons_get_status_values);
 
+/// \method buttons_get_raw()
+/// Get raw value buttons. The returned list correspond to [BACKWARD, LEFT, CENTER, FORWARD, RIGHT].
+mp_obj_t buttons_get_raw_values(mp_obj_t self_in) {
+    mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(5, NULL));
+    uint16_t* raw = Buttons_GetRaw();
+    for (int i = 0; i < 5; i++) {
+        data->items[i] = mp_obj_new_int(raw[i]);
+    }
+    return MP_OBJ_FROM_PTR(data);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(buttons_get_raw_values_obj, buttons_get_raw_values);
+
+/// \method buttons_get_filtered()
+/// Get filtered value buttons. The returned list correspond to [BACKWARD, LEFT, CENTER, FORWARD, RIGHT].
+mp_obj_t buttons_get_filtered_values(mp_obj_t self_in) {
+    mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(5, NULL));
+    uint16_t* filtered = Buttons_GetFiltered();
+    for (int i = 0; i < 5; i++) {
+        data->items[i] = mp_obj_new_int(filtered[i]);
+    }
+    return MP_OBJ_FROM_PTR(data);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(buttons_get_filtered_values_obj, buttons_get_filtered_values);
+
 STATIC const mp_rom_map_elem_t buttons_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_status), MP_ROM_PTR(&buttons_get_status_values_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_raw), MP_ROM_PTR(&buttons_get_raw_values_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_filtered), MP_ROM_PTR(&buttons_get_filtered_values_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(buttons_locals_dict, buttons_locals_dict_table);
