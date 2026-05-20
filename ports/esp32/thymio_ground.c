@@ -31,6 +31,7 @@
 #include "thymio_ground.h"
 #include "../../../../../main/stm32_spi.h"
 #include "../../../../../main/settings.h"
+#include "../../../../../main/common.h"
 
 int16_t calib_temp[4]; // left black, right black, left white, right white
 
@@ -69,12 +70,22 @@ void ground_get_calibration(int16_t *values)
     Settings_GetGroundWhiteSettings(&values[2]);
 }
 
-void ground_set_calibration(int16_t *values)
+void ground_set_and_save_calibration(int16_t *values)
 {
     Settings_WriteGroundBlack(values);
     Settings_SetGroundBlackSettings(values);
+    Common_SetGroundThr(values);
     Settings_WriteGroundWhite(&values[2]);
     Settings_SetGroundWhiteSettings(&values[2]);
+    STM32_SetGroundThr(&values[2], values);   
+}
+
+void ground_set_calibration(int16_t *values)
+{
+    Settings_SetGroundBlackSettings(values);
+    Common_SetGroundThr(values);
+    Settings_SetGroundWhiteSettings(&values[2]);
+    STM32_SetGroundThr(&values[2], values);   
 }
 
 void ground_reset_calibration(void)
@@ -171,8 +182,30 @@ mp_obj_t ground_get_calibration_(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_get_calibration_obj, ground_get_calibration_);
 
 /// \method set_and_save_calibration_all()
-/// Set  both ground calibration values [black left, black right, white left, white right].
+/// Set both ground calibration values [black left, black right, white left, white right] and save to flash.
 mp_obj_t ground_set_and_save_calibration_all(mp_obj_t self_in, mp_obj_t values) {
+    mp_obj_t *items;
+    size_t len;
+    int16_t calib_values[4];
+
+    mp_obj_get_array(values, &len, &items);
+    if (len != 4) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Expected exactly 4 values"));
+    }
+
+    for (size_t i = 0; i < len; i++) {
+        calib_values[i] = mp_obj_get_int(items[i]);
+    }
+
+    ground_set_and_save_calibration(calib_values);
+
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_and_save_calibration_all_obj, ground_set_and_save_calibration_all);
+
+/// \method set_calibration_all()
+/// Set  both ground calibration values [black left, black right, white left, white right].
+mp_obj_t ground_set_calibration_all(mp_obj_t self_in, mp_obj_t values) {
     mp_obj_t *items;
     size_t len;
     int16_t calib_values[4];
@@ -190,7 +223,7 @@ mp_obj_t ground_set_and_save_calibration_all(mp_obj_t self_in, mp_obj_t values) 
 
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_and_save_calibration_all_obj, ground_set_and_save_calibration_all);
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_calibration_all_obj, ground_set_calibration_all);
 
 /// \method calibrate_white()
 /// Calibrate both ground sensors on a white surface.
@@ -251,6 +284,7 @@ STATIC const mp_rom_map_elem_t ground_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_calibrate_white), MP_ROM_PTR(&ground_calibrate_white_obj) },
     { MP_ROM_QSTR(MP_QSTR_calibrate_black), MP_ROM_PTR(&ground_calibrate_black_obj) },
     { MP_ROM_QSTR(MP_QSTR_save_calibration), MP_ROM_PTR(&ground_save_calibration_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_calibration_all), MP_ROM_PTR(&ground_set_calibration_all_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(ground_locals_dict, ground_locals_dict_table);
