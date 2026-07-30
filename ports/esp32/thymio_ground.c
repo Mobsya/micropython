@@ -70,22 +70,31 @@ void ground_get_calibration(int16_t *values)
     Settings_GetGroundWhiteSettings(&values[2]);
 }
 
-void ground_set_and_save_calibration(int16_t *values)
+void ground_set_and_save_calibration_from_values(int16_t *values)
 {
     Settings_WriteGroundBlack(values);
     Settings_SetGroundBlackSettings(values);
-    Common_SetGroundThr(values);
+    //Common_SetGroundThr(values);
     Settings_WriteGroundWhite(&values[2]);
     Settings_SetGroundWhiteSettings(&values[2]);
-    STM32_SetGroundThr(&values[2], values);   
+    STM32_SetGroundRange(&values[2], values);
 }
 
-void ground_set_calibration(int16_t *values)
+void ground_set_calibration_from_values(int16_t *values)
 {
     Settings_SetGroundBlackSettings(values);
-    Common_SetGroundThr(values);
+    //Common_SetGroundThr(values);
     Settings_SetGroundWhiteSettings(&values[2]);
-    STM32_SetGroundThr(&values[2], values);   
+    STM32_SetGroundRange(&values[2], values);   
+}
+
+void ground_save_calibration_from_values(void)
+{
+    int16_t tempGround[2];
+    Settings_GetGroundBlackSettings(tempGround);
+    Settings_WriteGroundBlack(tempGround);
+    Settings_GetGroundWhiteSettings(tempGround);
+    Settings_WriteGroundWhite(tempGround);
 }
 
 void ground_reset_calibration(void)
@@ -181,9 +190,10 @@ mp_obj_t ground_get_calibration_(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_get_calibration_obj, ground_get_calibration_);
 
-/// \method set_and_save_calibration_all()
-/// Set both ground calibration values [black left, black right, white left, white right] and save to flash.
-mp_obj_t ground_set_and_save_calibration_all(mp_obj_t self_in, mp_obj_t values) {
+/// \method set_and_save_calibration_from_values()
+/// Set both ground calibration values [black left, black right, white left, white right] and save to flash
+/// based on the given values as parameters. These values will be used right away on all the behaviors.
+mp_obj_t ground_set_and_save_calibration_from_values_(mp_obj_t self_in, mp_obj_t values) {
     mp_obj_t *items;
     size_t len;
     int16_t calib_values[4];
@@ -197,15 +207,16 @@ mp_obj_t ground_set_and_save_calibration_all(mp_obj_t self_in, mp_obj_t values) 
         calib_values[i] = mp_obj_get_int(items[i]);
     }
 
-    ground_set_and_save_calibration(calib_values);
+    ground_set_and_save_calibration_from_values(calib_values);
 
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_and_save_calibration_all_obj, ground_set_and_save_calibration_all);
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_and_save_calibration_from_values_obj, ground_set_and_save_calibration_from_values_);
 
-/// \method set_calibration_all()
-/// Set  both ground calibration values [black left, black right, white left, white right].
-mp_obj_t ground_set_calibration_all(mp_obj_t self_in, mp_obj_t values) {
+/// \method set_calibration_from_values()
+/// Set both ground calibration values [black left, black right, white left, white right] without saving to flash
+/// based on the given values as parameters. These values will be used right away on all the behaviors.
+mp_obj_t ground_set_calibration_from_values_(mp_obj_t self_in, mp_obj_t values) {
     mp_obj_t *items;
     size_t len;
     int16_t calib_values[4];
@@ -219,11 +230,20 @@ mp_obj_t ground_set_calibration_all(mp_obj_t self_in, mp_obj_t values) {
         calib_values[i] = mp_obj_get_int(items[i]);
     }
 
-    ground_set_calibration(calib_values);
+    ground_set_calibration_from_values(calib_values);
 
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_calibration_all_obj, ground_set_calibration_all);
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_calibration_from_values_obj, ground_set_calibration_from_values_);
+
+/// \method save_calibration_from_values()
+/// Save calibration values for both ground sensors (white and black) based on previously set values with "ground_set_calibration_from_values" or "ground_set_and_save_calibration_from_values".
+/// The defualt values are loaded from flash at init, thus if "ground_set_calibration_from_values" is not called, the previous saved values will be used.
+mp_obj_t ground_save_calibration_from_values_(mp_obj_t self_in) {
+    ground_save_calibration_from_values();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_save_calibration_from_values_obj, ground_save_calibration_from_values_);
 
 /// \method calibrate_white()
 /// Calibrate both ground sensors on a white surface.
@@ -266,10 +286,15 @@ mp_obj_t ground_calibrate_black(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_calibrate_black_obj, ground_calibrate_black);
 
 /// \method save_calibration()
-/// Save calibration (white and black surfaces) of both ground sensors to flash.
+/// Save calibration values for both ground sensors (white and black) previously set with "ground_calibrate_white" and "ground_calibrate_black".
+/// The defualt values are loaded from flash at init, thus if "ground_calibrate_white" or "ground_calibrate_black" are not called, the previous saved values will be used.
 mp_obj_t ground_save_calibration(mp_obj_t self_in) {
     Settings_WriteGroundBlack(Setting.GroundBlack);
+    Settings_SetGroundBlackSettings(Setting.GroundBlack);
+    //Common_SetGroundThr(Setting.GroundBlack);
     Settings_WriteGroundWhite(Setting.GroundWhite);
+    Settings_SetGroundWhiteSettings(Setting.GroundWhite);
+    STM32_SetGroundRange(Setting.GroundWhite, Setting.GroundBlack);    
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_save_calibration_obj, ground_save_calibration);
@@ -280,11 +305,12 @@ STATIC const mp_rom_map_elem_t ground_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_ambient), MP_ROM_PTR(&ground_ambient_obj) },
     { MP_ROM_QSTR(MP_QSTR_reflected), MP_ROM_PTR(&ground_reflected_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_calibration), MP_ROM_PTR(&ground_get_calibration_obj) },
-    { MP_ROM_QSTR(MP_QSTR_set_and_save_calibration_all), MP_ROM_PTR(&ground_set_and_save_calibration_all_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_and_save_calibration_from_values), MP_ROM_PTR(&ground_set_and_save_calibration_from_values_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_calibration_from_values), MP_ROM_PTR(&ground_set_calibration_from_values_obj) },
+    { MP_ROM_QSTR(MP_QSTR_save_calibration_from_values), MP_ROM_PTR(&ground_save_calibration_from_values_obj) },
     { MP_ROM_QSTR(MP_QSTR_calibrate_white), MP_ROM_PTR(&ground_calibrate_white_obj) },
     { MP_ROM_QSTR(MP_QSTR_calibrate_black), MP_ROM_PTR(&ground_calibrate_black_obj) },
-    { MP_ROM_QSTR(MP_QSTR_save_calibration), MP_ROM_PTR(&ground_save_calibration_obj) },
-    { MP_ROM_QSTR(MP_QSTR_set_calibration_all), MP_ROM_PTR(&ground_set_calibration_all_obj) },
+    { MP_ROM_QSTR(MP_QSTR_save_calibration), MP_ROM_PTR(&ground_save_calibration_obj) },    
 };
 
 STATIC MP_DEFINE_CONST_DICT(ground_locals_dict, ground_locals_dict_table);
