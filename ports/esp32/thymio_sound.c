@@ -340,35 +340,69 @@ mp_obj_t sound_stop(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_stop_obj, sound_stop);
 
-//! \brief  Play onboard sound (the ones pre-built in the robot firmware).
-//! \param  The ind parameter identifies the correct sound to play:
-//!         0 = magic,
-//!         1 = Tick,
-//!         2 = Blop,
-//!         3 = Fall,
-//!         4 = Detection,
-//!         5 = Bye,
-//!         6 = C3,
-//!         7 = D3,
-//!         8 = E3,
-//!         9 = F3,
-//!         10 = G3,
-//!         11 = A3,
-//!         12 = B3,
-//!         13 = Alarm,
-//!         14 = Good,
-//!         15 = Bad
+//! \brief  Play a single tone.
+//! \param  freq - frequency in [Hz], limited to 3 KHz; 0 means silence
+//! \param  duration - duration in tenths of a second; 0 means play forever (until "stop")
 //! \return None if ok, RuntimeError exception if another sound or recording is already running.
 mp_obj_t sound_play_tone(mp_obj_t self_in, mp_obj_t freq, mp_obj_t duration) {
-    int f = mp_obj_get_int(freq);
-    int32_t dur = mp_obj_get_int(duration)*100; // convert to milliseconds
-    if(Codec_PlayTone(f, dur) != ESP_OK) {
+    T_ToneNote note;
+    int dur = mp_obj_get_int(duration);
+    note.freq_Hz = mp_obj_get_float(freq);
+    note.duration_ms = (dur > 0) ? (uint32_t)(dur * 100) : 0; // Convert from tenths of a second to milliseconds
+    if(Codec_PlayToneMelody(&note, 1) != ESP_OK) {
         mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot play"));
         return mp_const_none;
     }
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(sound_play_tone_obj, sound_play_tone);
+
+
+//! \brief  Play a melody of up to 5 notes; the melody is played up to the end without interruptions.
+//!         The two lists must have the same length, for instance:
+//!           play_melody([262, 330, 392], [2, 2, 4])
+//! \param  freqs - list (or tuple) of frequencies in [Hz], limited to 3 KHz; 0 means silence (rest)
+//! \param  durations - list (or tuple) of durations in tenths of a second; 0 means play forever
+//!                     (only meaningful for the last note)
+//! \return None if ok, RuntimeError exception if another sound or recording is already running,
+//!         ValueError if the lists are not correctly specified.
+STATIC mp_obj_t sound_play_melody(mp_obj_t self_in, mp_obj_t freqs, mp_obj_t durations) {
+    T_ToneNote notes[TONE_MELODY_MAX_NOTES];
+    size_t freqsLen = 0, durationsLen = 0;
+    mp_obj_t *freqsItems = NULL, *durationsItems = NULL;
+
+    if((!mp_obj_is_type(freqs, &mp_type_list) && !mp_obj_is_type(freqs, &mp_type_tuple)) ||
+       (!mp_obj_is_type(durations, &mp_type_list) && !mp_obj_is_type(durations, &mp_type_tuple))) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Frequencies and durations must be lists"));
+        return mp_const_none;
+    }
+
+    mp_obj_get_array(freqs, &freqsLen, &freqsItems);
+    mp_obj_get_array(durations, &durationsLen, &durationsItems);
+
+    if(freqsLen != durationsLen) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Frequencies and durations must have the same length"));
+        return mp_const_none;
+    }
+
+    if((freqsLen == 0) || (freqsLen > TONE_MELODY_MAX_NOTES)) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("From 1 to %d notes are expected"), TONE_MELODY_MAX_NOTES);
+        return mp_const_none;
+    }
+
+    for(size_t i=0; i<freqsLen; i++) {
+        int dur = mp_obj_get_int(durationsItems[i]);
+        notes[i].freq_Hz = mp_obj_get_float(freqsItems[i]);
+        notes[i].duration_ms = (dur > 0) ? (uint32_t)(dur * 100) : 0; // Convert from tenths of a second to milliseconds
+    }
+
+    if(Codec_PlayToneMelody(notes, (uint8_t)freqsLen) != ESP_OK) {
+        mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot play"));
+        return mp_const_none;
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_3(sound_play_melody_obj, sound_play_melody);
 
 STATIC const mp_rom_map_elem_t sound_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_record), MP_ROM_PTR(&sound_record_wav_obj) },
@@ -388,6 +422,7 @@ STATIC const mp_rom_map_elem_t sound_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_clear_events), MP_ROM_PTR(&sound_clear_events_obj) },
     { MP_ROM_QSTR(MP_QSTR_stop), MP_ROM_PTR(&sound_stop_obj) },
     { MP_ROM_QSTR(MP_QSTR_play_tone), MP_ROM_PTR(&sound_play_tone_obj) },
+    { MP_ROM_QSTR(MP_QSTR_play_melody), MP_ROM_PTR(&sound_play_melody_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(sound_locals_dict, sound_locals_dict_table);
