@@ -199,6 +199,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_calibrate_gyro_obj, imu_calibrate_gyro_);
 
 /// \method imu_rotate_deg()
 /// Tell the robot to rotate by "angle" degrees (-360..360) at maximum speed "speed" (0..1000).
+/// The robot spins in place; the sign of the angle gives the direction.
 mp_obj_t imu_rotate_deg_(mp_obj_t self_in, mp_obj_t angle, mp_obj_t speed) {
     int a = mp_obj_get_int(angle);
     int s = mp_obj_get_int(speed);
@@ -213,6 +214,85 @@ mp_obj_t imu_rotate_deg_(mp_obj_t self_in, mp_obj_t angle, mp_obj_t speed) {
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(imu_rotate_deg_obj, imu_rotate_deg_);
+
+/// \method imu_rotate_deg_LR_speeds()
+/// Tell the robot to rotate by "angle" degrees (-360..360) using an arbitrary
+/// speed pair instead of a spin in place. Speeds are in the range -1000..1000
+/// and must differ from each other, otherwise the robot would never turn.
+/// The pair is applied to the motors as given: its sign gives the travel
+/// direction (both positive drives forward, both negative drives backward) and
+/// the difference "right - left" gives the turn, counterclockwise when positive.
+/// (300, 0) is a forward arc to the right, (-300, -100) a backward arc to the
+/// left, (-300, 300) a spin in place.
+/// When the requested angle lies the other way, the pair wins and the robot
+/// takes the long way around: rotate_deg_LR_speeds(-90, 0, 200) travels +270
+/// degrees along a forward arc to the left, ending at the requested heading.
+mp_obj_t imu_rotate_deg_LR_speeds_(size_t n_args, const mp_obj_t *args) {
+    int a = mp_obj_get_int(args[1]);
+    int l = mp_obj_get_int(args[2]);
+    int r = mp_obj_get_int(args[3]);
+    // check parameters range
+    if ((a > 360) || (a < -360)) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Target angle must be between -360 and 360"));
+    }
+    if ((l > 1000) || (l < -1000) || (r > 1000) || (r < -1000)) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Speeds must be between -1000 and 1000"));
+    }
+    if (l == r) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Left and right speeds must differ"));
+    }
+    AngleController_StartWithSpeeds(a, l, r);
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(imu_rotate_deg_LR_speeds_obj, 4, 4, imu_rotate_deg_LR_speeds_);
+
+/// \method imu_rotate_deg_absolute()
+/// Tell the robot to rotate to an absolute heading of "angle" degrees at maximum
+/// speed "speed" (0..1000). The heading is referred to the origin set by the last
+/// "reset_angle" call, not to the current orientation, and is not folded into a
+/// single turn: a heading beyond -360..360 is a legitimate request when the robot
+/// accumulated several turns since the last reset.
+mp_obj_t imu_rotate_deg_absolute_(mp_obj_t self_in, mp_obj_t angle, mp_obj_t speed) {
+    int a = mp_obj_get_int(angle);
+    int s = mp_obj_get_int(speed);
+    // check parameters range
+    if ((a > 32767) || (a < -32768)) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Target angle must be between -32768 and 32767"));
+    }
+    if ((s > 1000) || (s < 0)) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Maximum speed must be between 0 and 1000"));
+    }
+    AngleController_StartAbsolute(a, s);
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_3(imu_rotate_deg_absolute_obj, imu_rotate_deg_absolute_);
+
+/// \method imu_rotate_deg_absolute_LR_speeds()
+/// Same as "rotate_deg_absolute", but using an arbitrary speed pair instead of a
+/// spin in place. Speeds are in the range -1000..1000 and must differ from each
+/// other, otherwise the robot would never turn. Passing (-speed, speed) is
+/// equivalent to "rotate_deg_absolute".
+/// The pair is applied to the motors as given; when the target heading lies the
+/// way the pair does not turn to, the robot takes the long way around and still
+/// ends at the requested heading.
+mp_obj_t imu_rotate_deg_absolute_LR_speeds_(size_t n_args, const mp_obj_t *args) {
+    int a = mp_obj_get_int(args[1]);
+    int l = mp_obj_get_int(args[2]);
+    int r = mp_obj_get_int(args[3]);
+    // check parameters range
+    if ((a > 32767) || (a < -32768)) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Target angle must be between -32768 and 32767"));
+    }
+    if ((l > 1000) || (l < -1000) || (r > 1000) || (r < -1000)) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Speeds must be between -1000 and 1000"));
+    }
+    if (l == r) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Left and right speeds must differ"));
+    }
+    AngleController_StartAbsoluteWithSpeeds(a, l, r);
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(imu_rotate_deg_absolute_LR_speeds_obj, 4, 4, imu_rotate_deg_absolute_LR_speeds_);
 
 /// \method imu_rotation_is_complete()
 /// Tell if the angle controller completed the rotation, i.e. reached the target position given with "rotate_deg".
@@ -321,6 +401,9 @@ STATIC const mp_rom_map_elem_t imu_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_reset_gyro_calib), MP_ROM_PTR(&imu_reset_gyro_calibration_obj) },
     { MP_ROM_QSTR(MP_QSTR_calibrate_gyro), MP_ROM_PTR(&imu_calibrate_gyro_obj) },
     { MP_ROM_QSTR(MP_QSTR_rotate_deg), MP_ROM_PTR(&imu_rotate_deg_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rotate_deg_LR_speeds), MP_ROM_PTR(&imu_rotate_deg_LR_speeds_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rotate_deg_absolute), MP_ROM_PTR(&imu_rotate_deg_absolute_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rotate_deg_absolute_LR_speeds), MP_ROM_PTR(&imu_rotate_deg_absolute_LR_speeds_obj) },
     { MP_ROM_QSTR(MP_QSTR_rotation_completed), MP_ROM_PTR(&imu_rotation_is_complete_obj) },
     { MP_ROM_QSTR(MP_QSTR_enable_gyro_auto_calib), MP_ROM_PTR(&imu_enable_gyro_continuous_calibration_obj) },
     { MP_ROM_QSTR(MP_QSTR_disable_gyro_auto_calib), MP_ROM_PTR(&imu_disable_gyro_continuous_calibration_obj) },

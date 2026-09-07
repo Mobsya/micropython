@@ -33,9 +33,9 @@
 
 
 /// \moduleref thymio
-/// \class LED - LED object
+/// \class LEDS_RGB - LED object
 ///
-/// The LED object controls an individual LED (Light Emitting Diode).
+/// The LEDS_RGB object controls an individual RGB LED (Light Emitting Diode).
 
 typedef struct _thymio_leds_rgb_obj_t {
     mp_obj_base_t base;
@@ -179,8 +179,16 @@ void leds_rgb_obj_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind
 
 /// \classmethod \constructor(id)
 /// Create an LEDS RGB associated with the given RGB LED:
-///
-///   - `id` is the LED number, 0-5 that corresponds to front-left, front-right, back-left, back-right, bottom, small top-back.
+/// \param id The LED number, 0-5 that corresponds to front-left, front-right, back-left, back-right, bottom, small top-back.
+/// \example Create a RGB LED object for all the RGB LEDs:
+///     import thymio
+///     rgb_fl = thymio.LEDS_RGB(0) # RGB front-left
+///     rgb_fr = thymio.LEDS_RGB(1) # RGB front-right
+///     rgb_bl = thymio.LEDS_RGB(2) # RGB back-left
+///     rgb_br = thymio.LEDS_RGB(3) # RGB back-right
+///     rgb_btm = thymio.LEDS_RGB(4)  # RGB bottom
+///     rgb_conn_status = thymio.LEDS_RGB(5)  # RGB small top-back
+/// \endexample
 STATIC mp_obj_t leds_rgb_obj_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // check arguments
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
@@ -198,7 +206,10 @@ STATIC mp_obj_t leds_rgb_obj_make_new(const mp_obj_type_t *type, size_t n_args, 
 }
 
 /// \method on()
-/// Turn the LED on at maximum brightness.
+/// Turn the RGB LED on (white) at maximum brightness.
+/// \example Turn on the front-left RGB LED white at maximum brightness:
+///     rgb_fl.on()
+/// \endexample
 mp_obj_t leds_rgb_obj_on(mp_obj_t self_in) {
     thymio_leds_rgb_obj_t *self = MP_OBJ_TO_PTR(self_in);
     leds_rgb_set_intensity(self->led_id, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS);
@@ -207,7 +218,10 @@ mp_obj_t leds_rgb_obj_on(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(leds_rgb_obj_on_obj, leds_rgb_obj_on);
 
 /// \method off()
-/// Turn the LED off.
+/// Turn the RGB LED off.
+/// \example Turn off the front-left RGB LED:
+///     rgb_fl.off()
+/// \endexample
 mp_obj_t leds_rgb_obj_off(mp_obj_t self_in) {
     thymio_leds_rgb_obj_t *self = MP_OBJ_TO_PTR(self_in);
     leds_rgb_set_intensity(self->led_id, 0, 0, 0);
@@ -216,7 +230,11 @@ mp_obj_t leds_rgb_obj_off(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(leds_rgb_obj_off_obj, leds_rgb_obj_off);
 
 /// \method set_intensity([value red, value green, value blue])
-/// Set the LED intensities.  Intensity ranges between 0 (off) and 16 (full on).
+/// Set the RGB LED intensities.  Intensity ranges between 0 (off) and 16 (full on).
+/// \param    values red, green, blue: intensities between 0 and 16. The higher the value the brighter the LED.
+/// \example Turn the front-left RGB LED red at maximum brightness:
+///     rgb_fl.set_intensity(16, 0, 0)
+/// \endexample
 /// Return `None`.
 mp_obj_t leds_rgb_obj_set_intensity(size_t n_args, const mp_obj_t *args) {
     thymio_leds_rgb_obj_t *self = MP_OBJ_TO_PTR(args[0]);
@@ -230,6 +248,9 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(leds_rgb_obj_set_intensity_obj, 4, 4,
 
 /// \method get_intensity_red()
 /// Return current red intensity [0..16].
+/// \example Get the current front-left RGB LED red value:
+///     rgb_fl.get_intensity_red()
+/// \endexample
 mp_obj_t leds_rgb_obj_get_intensity_red(mp_obj_t self_in) {
     thymio_leds_rgb_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_int(leds_rgb_get_intensity_red(self->led_id));
@@ -238,6 +259,9 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(leds_rgb_obj_get_intensity_red_obj, leds_rgb_ob
 
 /// \method get_intensity_green()
 /// Return current green intensity [0..16].
+/// \example Get the current front-left RGB LED green value:
+///     rgb_fl.get_intensity_green()
+/// \endexample
 mp_obj_t leds_rgb_obj_get_intensity_green(mp_obj_t self_in) {
     thymio_leds_rgb_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_int(leds_rgb_get_intensity_green(self->led_id));
@@ -246,6 +270,9 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(leds_rgb_obj_get_intensity_green_obj, leds_rgb_
 
 /// \method get_intensity_blue()
 /// Return current blue intensity [0..16].
+/// \example Get the current front-left RGB LED blue value:
+///     rgb_fl.get_intensity_blue()
+/// \endexample
 mp_obj_t leds_rgb_obj_get_intensity_blue(mp_obj_t self_in) {
     thymio_leds_rgb_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_int(leds_rgb_get_intensity_blue(self->led_id));

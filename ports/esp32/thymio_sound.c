@@ -358,7 +358,7 @@ mp_obj_t sound_play_tone(mp_obj_t self_in, mp_obj_t freq, mp_obj_t duration) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(sound_play_tone_obj, sound_play_tone);
 
 
-//! \brief  Play a melody of up to 6 notes; the melody is played up to the end without interruptions.
+//! \brief  Play a melody of up to TONE_MELODY_MAX_NOTES notes; the melody is played up to the end without interruptions.
 //!         The two lists must have the same length, for instance:
 //!           play_melody([262, 330, 392], [2, 2, 4])
 //! \param  freqs - list (or tuple) of frequencies in [Hz], limited to 3 KHz; 0 means silence (rest)
