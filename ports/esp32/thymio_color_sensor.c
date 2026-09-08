@@ -29,6 +29,7 @@
 #include "py/runtime.h"
 #include "py/mphal.h"
 #include "thymio_color_sensor.h"
+#include "../../../../../main/leds.h"
 
 T_HSV hsv_temp;
 T_RawColor raw_temp;
@@ -36,7 +37,7 @@ T_RawColor raw_temp;
 /// \moduleref thymio
 /// \class COLOR_SENSOR - COLOR_SENSOR object
 ///
-/// The COLOR_SENSOR object get color_sensor values.
+/// The Thymio 3 robot is equipped with a color sensor on its bottom. This sensor detects colors when in direct contact with a surface.
 
 typedef struct _thymio_color_sensor_obj_t {
     mp_obj_base_t base;
@@ -70,7 +71,11 @@ void color_sensor_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind
 }
 
 /// \classmethod \constructor()
-/// Create a COLOR_SENSOR object:
+/// Create a COLOR SENSOR object:
+/// \example Create a COLOR SENSOR object
+///     import thymio
+///     color = thymio.COLOR_SENSOR()
+/// \endexample
 STATIC mp_obj_t color_sensor_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     thymio_color_sensor_obj_t *color_sensor = m_new_obj(thymio_color_sensor_obj_t);
     color_sensor->base.type = &thymio_color_sensor_type;
@@ -78,7 +83,11 @@ STATIC mp_obj_t color_sensor_make_new(const mp_obj_type_t *type, size_t n_args, 
 }
 
 /// \method get_hsv()
-/// Get HSV values.
+/// Get the HSV values detected by the color sensor. Hue range is [0..360], saturation range is [0..100], value range is [0..100].
+/// \example Print HSV values detected by the color sensor:
+///     hue, saturation, value = color.get_hsv()
+///     print(f"Hue: {hue}, Saturation: {saturation}, Value: {value}") 
+/// \endexample
 mp_obj_t color_sensor_get_hsv_values(mp_obj_t self_in) {
     mp_obj_t items[3];
     hsv_temp = color_sensor_get_hsv();
@@ -90,7 +99,11 @@ mp_obj_t color_sensor_get_hsv_values(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_get_hsv_values_obj, color_sensor_get_hsv_values);
 
 /// \method get_raw()
-/// Get RGB raw values.
+/// Get color sensor raw values. The returned list corresponds to [red, green, blue, clear].
+/// \example Print raw values detected by the color sensor:
+///     red, green, blue, clear = color.get_raw()
+///     print(f"Red: {red}, Green: {green}, Blue: {blue}, Clear: {clear}") 
+/// \endexample
 mp_obj_t color_sensor_get_raw_values(mp_obj_t self_in) {
     mp_obj_t items[4];
     raw_temp = color_sensor_get_raw();
@@ -103,7 +116,11 @@ mp_obj_t color_sensor_get_raw_values(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_get_raw_values_obj, color_sensor_get_raw_values);
 
 /// \method get_calibration()
-/// Get calibration values (calibration done in both white and black surfaces): [red white, green white, blue white, red black, green black, blue black].
+/// Get calibration values (calibration done in both white and black surfaces). The returned list corresponds to [red white, green white, blue white, red black, green black, blue black].
+/// \example Print calibration values of the color sensor:
+///     red_white, green_white, blue_white, red_black, green_black, blue_black = color.get_calibration()
+///     print(f"Red White: {red_white}, Green White: {green_white}, Blue White: {blue_white}, Red Black: {red_black}, Green Black: {green_black}, Blue Black: {blue_black}") 
+/// \endexample
 mp_obj_t color_sensor_get_calibration(mp_obj_t self_in) {
     T_RawColor white = color_sensor_get_calib_white();
     T_RawColor black = color_sensor_get_calib_black();
@@ -118,21 +135,62 @@ mp_obj_t color_sensor_get_calibration(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_get_calibration_obj, color_sensor_get_calibration);
 
-/// \method calibrate_white()
+/// \method calibrate_and_save_white()
 /// Calibrate on white surface and save calibration values to flash.
+/// \example Calibrate the color sensor on a white surface and save the calibration values to flash:
+///     color.calibrate_and_save_white()
+/// \endexample
 mp_obj_t color_sensor_calibrate_and_save_white(mp_obj_t self_in) {
     ColorSensor_CalibrateWhite();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_calibrate_and_save_white_obj, color_sensor_calibrate_and_save_white);
 
-/// \method calibrate_black()
+/// \method calibrate_and_save_black()
 /// Calibrate on black surface and save calibration values to flash.
+/// \example Calibrate the color sensor on a black surface and save the calibration values to flash:
+///     color.calibrate_and_save_black()
+/// \endexample
 mp_obj_t color_sensor_calibrate_and_save_black(mp_obj_t self_in) {
     ColorSensor_CalibrateBlack();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_calibrate_and_save_black_obj, color_sensor_calibrate_and_save_black);
+
+/// \method led_on()
+/// Turn the color sensor LED on at maximum brightness. Beware that the color sensor need the LED to be on to detect colors.
+mp_obj_t led_color_obj_on(mp_obj_t self_in) {
+    Leds_SetSingleBrightness(E_Led_White_Sensor, MAX_BRIGHTNESS);
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(led_color_obj_on_obj, led_color_obj_on);
+
+/// \method led_off()
+/// Turn the color sensor LED off. Beware that the color sensor need the LED to be on to detect colors.
+mp_obj_t led_color_obj_off(mp_obj_t self_in) {
+    Leds_SetSingleBrightness(E_Led_White_Sensor, 0);
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(led_color_obj_off_obj, led_color_obj_off);
+
+/// \method led_intensity([value])
+/// Get or set the color sensor LED intensity.  Intensity ranges between 0 (off) and 16 (full on).
+/// If no argument is given, return the current LED intensity.
+/// If an argument is given, set the LED intensity and return `None`.
+/// Beware that the color sensor need the LED to be on to detect colors.
+mp_obj_t led_color_obj_intensity(size_t n_args, const mp_obj_t *args) {
+    if (n_args == 1) {
+        return mp_obj_new_int(Leds_GetBrightness(E_Led_White_Sensor));
+    } else {
+        int intensity = mp_obj_get_int(args[1]);
+        if(intensity > MAX_BRIGHTNESS) {
+            intensity = MAX_BRIGHTNESS;
+        }
+        Leds_SetSingleBrightness(E_Led_White_Sensor, intensity);
+        return mp_const_none;
+    }
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(led_color_obj_intensity_obj, 1, 2, led_color_obj_intensity);
 
 STATIC const mp_rom_map_elem_t color_sensor_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_hsv), MP_ROM_PTR(&color_sensor_get_hsv_values_obj) },
@@ -140,6 +198,9 @@ STATIC const mp_rom_map_elem_t color_sensor_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_calibration), MP_ROM_PTR(&color_sensor_get_calibration_obj) },
     { MP_ROM_QSTR(MP_QSTR_calibrate_and_save_white), MP_ROM_PTR(&color_sensor_calibrate_and_save_white_obj) },
     { MP_ROM_QSTR(MP_QSTR_calibrate_and_save_black), MP_ROM_PTR(&color_sensor_calibrate_and_save_black_obj) },
+    { MP_ROM_QSTR(MP_QSTR_led_on), MP_ROM_PTR(&led_color_obj_on_obj) },
+    { MP_ROM_QSTR(MP_QSTR_led_off), MP_ROM_PTR(&led_color_obj_off_obj) },
+    { MP_ROM_QSTR(MP_QSTR_led_intensity), MP_ROM_PTR(&led_color_obj_intensity_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(color_sensor_locals_dict, color_sensor_locals_dict_table);

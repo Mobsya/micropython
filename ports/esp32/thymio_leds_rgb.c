@@ -229,7 +229,7 @@ mp_obj_t leds_rgb_obj_off(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(leds_rgb_obj_off_obj, leds_rgb_obj_off);
 
-/// \method set_intensity([value red, value green, value blue])
+/// \method set_intensity(value red, value green, value blue)
 /// Set the RGB LED intensities.  Intensity ranges between 0 (off) and 16 (full on).
 /// \param    values red, green, blue: intensities between 0 and 16. The higher the value the brighter the LED.
 /// \example Turn the front-left RGB LED red at maximum brightness:

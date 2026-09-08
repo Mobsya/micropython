@@ -45,7 +45,6 @@
 #include "thymio_proximity.h"
 #include "thymio_ground.h"
 #include "thymio_motors.h"
-#include "thymio_filesystem.h"
 #include "thymio_sound.h"
 #include "thymio_leds_lego_front.h"
 #include "thymio_leds_lego_back.h"
@@ -58,7 +57,6 @@
 #include "thymio_leds_buttons.h"
 #include "thymio_led_receiver.h"
 #include "thymio_led_mic.h"
-#include "thymio_led_color.h"
 #include "thymio_i2c.h"
 #include "../../../../../main/mode.h"
 #include "../../../../../main/utility.h"
@@ -85,7 +83,7 @@ STATIC mp_obj_t get_motors_voltage(void) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(get_motors_voltage_obj, get_motors_voltage);
 
-// Get current Thymio API version.
+// Get current Thymio 3 Micropython API version.
 STATIC mp_obj_t get_api_version(void) {
     snprintf(api_version, 6, "%2d.%-2d", THYMIO_API_MAJOR_VERSION, THYMIO_API_MINOR_VERSION);
     return mp_obj_new_str(api_version, strlen(api_version));
@@ -104,7 +102,6 @@ STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_PROXIMITY), MP_ROM_PTR(&thymio_proximity_type) },
     { MP_ROM_QSTR(MP_QSTR_GROUND), MP_ROM_PTR(&thymio_ground_type) },
     { MP_ROM_QSTR(MP_QSTR_MOTORS), MP_ROM_PTR(&thymio_motors_type) },
-    { MP_ROM_QSTR(MP_QSTR_FILESYSTEM), MP_ROM_PTR(&thymio_filesystem_type) },
     { MP_ROM_QSTR(MP_QSTR_SOUND), MP_ROM_PTR(&thymio_sound_type) },
     { MP_ROM_QSTR(MP_QSTR_LEDS_LEGO_FRONT), MP_ROM_PTR(&thymio_leds_lego_front_type) },
     { MP_ROM_QSTR(MP_QSTR_LEDS_LEGO_BACK), MP_ROM_PTR(&thymio_leds_lego_back_type) },
@@ -117,7 +114,6 @@ STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_LEDS_BUTTONS), MP_ROM_PTR(&thymio_leds_buttons_type) },
     { MP_ROM_QSTR(MP_QSTR_LED_RECEIVER), MP_ROM_PTR(&thymio_led_receiver_type) },
     { MP_ROM_QSTR(MP_QSTR_LED_MICROPHONE), MP_ROM_PTR(&thymio_led_microphone_type) },
-    { MP_ROM_QSTR(MP_QSTR_LED_COLOR), MP_ROM_PTR(&thymio_led_color_type) },
     { MP_ROM_QSTR(MP_QSTR_I2C), MP_ROM_PTR(&thymio_i2c_type) },
 };
 

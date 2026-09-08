@@ -38,7 +38,7 @@ int16_t calib_temp[4]; // left black, right black, left white, right white
 /// \moduleref thymio
 /// \class GROUND - GROUND object
 ///
-/// The GROUND object get data from ground sensors.
+/// The Thymio 3 robot has two ground sensors located on the bottom-front. These detect dark shades, such as black or gray lines.
 
 typedef struct _thymio_ground_obj_t {
     mp_obj_base_t base;
@@ -74,7 +74,6 @@ void ground_set_and_save_calibration_from_values(int16_t *values)
 {
     Settings_WriteGroundBlack(values);
     Settings_SetGroundBlackSettings(values);
-    //Common_SetGroundThr(values);
     Settings_WriteGroundWhite(&values[2]);
     Settings_SetGroundWhiteSettings(&values[2]);
     STM32_SetGroundRange(&values[2], values);
@@ -83,7 +82,6 @@ void ground_set_and_save_calibration_from_values(int16_t *values)
 void ground_set_calibration_from_values(int16_t *values)
 {
     Settings_SetGroundBlackSettings(values);
-    //Common_SetGroundThr(values);
     Settings_SetGroundWhiteSettings(&values[2]);
     STM32_SetGroundRange(&values[2], values);   
 }
@@ -113,8 +111,12 @@ void ground_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kin
 
 /// \classmethod \constructor(id)
 /// Create an GROUND object associated with the given GROUND:
-///
-///   - `id` is the GROUND number, 0-1.
+/// \param id is the GROUND number, 0 for left and 1 for right.
+/// \example Create a GROUND object for both ground sensors:
+///     import thymio
+///     g0 = thymio.GROUND(0) # left
+///     g1 = thymio.GROUND(1) # right
+/// \endexample
 STATIC mp_obj_t ground_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // check arguments
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
@@ -134,28 +136,21 @@ STATIC mp_obj_t ground_make_new(const mp_obj_type_t *type, size_t n_args, size_t
 }
 
 /// \method value()
-/// Get ground sensor value (the lower the value, the darker the object).
+/// Get ground sensor value (the lower the value, the darker the object). Range is [0..1023].
+/// \example Print left ground sensor value:
+///     print(str(g0.value()))
+/// \endexample
 mp_obj_t ground_value(mp_obj_t self_in) {
     thymio_ground_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_int(ground_get_value(self->ground_id));
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_value_obj, ground_value);
 
-/// \method normalized_value()
-/// Get normalized (between 0 and 100) ground sensor value (the lower the value, the darker the object).
-mp_obj_t ground_normalized_value(mp_obj_t self_in) {
-    thymio_ground_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    float temp = ground_get_value(self->ground_id);
-    float normalized = temp*100.0/1024.0;
-    if(normalized > 100) {
-        normalized = 100;
-    }
-    return mp_obj_new_int((int)normalized);
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_normalized_value_obj, ground_normalized_value);
-
-/// \method get_ambient()
+/// \method ambient()
 /// Get ground sensor ambient value (the higher the value, the brighter the ambient light).
+/// \example Print left ground ambient value:
+///     print(str(g0.ambient()))
+/// \endexample
 mp_obj_t ground_ambient(mp_obj_t self_in) {
     thymio_ground_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_int(GetGroundAmbient(self->ground_id));
@@ -164,14 +159,20 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_ambient_obj, ground_ambient);
 
 /// \method reflected()
 /// Get ground sensor reflected value (the lower the value, the darker the object).
+/// \example Print left ground reflected value:
+///     print(str(g0.reflected()))
+/// \endexample
 mp_obj_t ground_reflected(mp_obj_t self_in) {
     thymio_ground_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_int(GetGroundReflected(self->ground_id));
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_reflected_obj, ground_reflected);
 
-/// \method ground_get_calibration()
-/// Get ground calibration values [black, white].
+/// \method get_calibration()
+/// Get ground calibration values for black and white surfaces: [black, white].
+/// \example Print left ground calibration values:
+///     print(str(g0.get_calibration()))
+/// \endexample
 mp_obj_t ground_get_calibration_(mp_obj_t self_in) {
     thymio_ground_obj_t *self = MP_OBJ_TO_PTR(self_in);
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(2, NULL));
@@ -190,9 +191,12 @@ mp_obj_t ground_get_calibration_(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_get_calibration_obj, ground_get_calibration_);
 
-/// \method set_and_save_calibration_from_values()
-/// Set both ground calibration values [black left, black right, white left, white right] and save to flash
-/// based on the given values as parameters. These values will be used right away on all the behaviors.
+/// \method set_and_save_calibration_from_values(black_left, black_right, white_left, white_right)
+/// Set both ground calibration values and save to flash. These values will be used right away on all the behaviors.
+/// \param black_left, black_right, white_left, white_right - Calibration values for both ground sensors. Range is [0..1023].
+/// \example Set and save both ground calibration values:
+///     g0.set_and_save_calibration_from_values([1, 0, 750, 800])
+/// \endexample
 mp_obj_t ground_set_and_save_calibration_from_values_(mp_obj_t self_in, mp_obj_t values) {
     mp_obj_t *items;
     size_t len;
@@ -213,9 +217,12 @@ mp_obj_t ground_set_and_save_calibration_from_values_(mp_obj_t self_in, mp_obj_t
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_and_save_calibration_from_values_obj, ground_set_and_save_calibration_from_values_);
 
-/// \method set_calibration_from_values()
-/// Set both ground calibration values [black left, black right, white left, white right] without saving to flash
-/// based on the given values as parameters. These values will be used right away on all the behaviors.
+/// \method set_calibration_from_values(black_left, black_right, white_left, white_right)
+/// Set both ground calibration values without saving to flash. These values will be used right away on all the behaviors, but at next boot they will be reset to the last saved values.
+/// \param black_left, black_right, white_left, white_right - Calibration values for both ground sensors. Range is [0..1023].
+/// \example Set both ground calibration values without saving to flash:
+///     g0.set_calibration_from_values([1, 0, 750, 800])
+/// \endexample
 mp_obj_t ground_set_calibration_from_values_(mp_obj_t self_in, mp_obj_t values) {
     mp_obj_t *items;
     size_t len;
@@ -237,8 +244,10 @@ mp_obj_t ground_set_calibration_from_values_(mp_obj_t self_in, mp_obj_t values) 
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_calibration_from_values_obj, ground_set_calibration_from_values_);
 
 /// \method save_calibration_from_values()
-/// Save calibration values for both ground sensors (white and black) based on previously set values with "ground_set_calibration_from_values" or "ground_set_and_save_calibration_from_values".
-/// The defualt values are loaded from flash at init, thus if "ground_set_calibration_from_values" is not called, the previous saved values will be used.
+/// Save calibration values for both ground sensors (white and black) based on previously set values with "ground_set_calibration_from_values".
+/// \example Save both ground calibration values to flash:
+///     g0.save_calibration_from_values()
+/// \endexample
 mp_obj_t ground_save_calibration_from_values_(mp_obj_t self_in) {
     ground_save_calibration_from_values();
     return mp_const_none;
@@ -246,8 +255,10 @@ mp_obj_t ground_save_calibration_from_values_(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_save_calibration_from_values_obj, ground_save_calibration_from_values_);
 
 /// \method calibrate_white()
-/// Calibrate both ground sensors on a white surface.
-/// These values will be used until power off.
+/// Calibrate both ground sensors on a white surface. These values will be used until power off.
+/// \example Calibrate both ground sensors on a white surface:
+///     g0.calibrate_white()
+/// \endexample
 mp_obj_t ground_calibrate_white(mp_obj_t self_in) {
     GetGroundAmbients(tempAmbient);
     GetGroundReflecteds(tempReflected);
@@ -266,8 +277,10 @@ mp_obj_t ground_calibrate_white(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_calibrate_white_obj, ground_calibrate_white);
 
 /// \method calibrate_black()
-/// Calibrate both ground sensors on a black surface.
-/// These values will be used until power off.
+/// Calibrate both ground sensors on a black surface. These values will be used until power off.
+/// \example Calibrate both ground sensors on a black surface:
+///     g0.calibrate_black()
+/// \endexample
 mp_obj_t ground_calibrate_black(mp_obj_t self_in) {
     GetGroundAmbients(tempAmbient);
     GetGroundReflecteds(tempReflected);
@@ -288,10 +301,12 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_calibrate_black_obj, ground_calibrate_bl
 /// \method save_calibration()
 /// Save calibration values for both ground sensors (white and black) previously set with "ground_calibrate_white" and "ground_calibrate_black".
 /// The defualt values are loaded from flash at init, thus if "ground_calibrate_white" or "ground_calibrate_black" are not called, the previous saved values will be used.
+/// \example Save both ground calibration values to flash:
+///     g0.save_calibration()
+/// \endexample
 mp_obj_t ground_save_calibration(mp_obj_t self_in) {
     Settings_WriteGroundBlack(Setting.GroundBlack);
     Settings_SetGroundBlackSettings(Setting.GroundBlack);
-    //Common_SetGroundThr(Setting.GroundBlack);
     Settings_WriteGroundWhite(Setting.GroundWhite);
     Settings_SetGroundWhiteSettings(Setting.GroundWhite);
     STM32_SetGroundRange(Setting.GroundWhite, Setting.GroundBlack);    
@@ -301,7 +316,6 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_save_calibration_obj, ground_save_calibr
 
 STATIC const mp_rom_map_elem_t ground_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_value), MP_ROM_PTR(&ground_value_obj) },
-    { MP_ROM_QSTR(MP_QSTR_normalized_value), MP_ROM_PTR(&ground_normalized_value_obj) },
     { MP_ROM_QSTR(MP_QSTR_ambient), MP_ROM_PTR(&ground_ambient_obj) },
     { MP_ROM_QSTR(MP_QSTR_reflected), MP_ROM_PTR(&ground_reflected_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_calibration), MP_ROM_PTR(&ground_get_calibration_obj) },

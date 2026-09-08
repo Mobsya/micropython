@@ -34,7 +34,7 @@
 /// \moduleref thymio
 /// \class BUTTONS - BUTTONS object
 ///
-/// The BUTTONS object get touchpad buttons status.
+/// The Thymio 3 has 5 buttons located on its top. These include directional buttons and a central button, acting as direct user interaction interface.
 
 typedef struct _thymio_buttons_obj_t {
     mp_obj_base_t base;
@@ -56,14 +56,22 @@ void buttons_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t ki
 
 /// \classmethod \constructor()
 /// Create a BUTTONS object:
+/// \example Create a BUTTONS object
+///     import thymio
+///     btn = thymio.BUTTONS()
+/// \endexample
 STATIC mp_obj_t buttons_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     thymio_buttons_obj_t *buttons = m_new_obj(thymio_buttons_obj_t);
     buttons->base.type = &thymio_buttons_type;
     return MP_OBJ_FROM_PTR(buttons);
 }
 
-/// \method buttons_get_status()
-/// Get buttons status (1 = pressed, 0 = not pressed). The returned list correspond to [BACKWARD, LEFT, CENTER, FORWARD, RIGHT].
+/// \method get_status()
+/// Get buttons status (1 = pressed, 0 = not pressed). The returned list corresponds to [BACKWARD, LEFT, CENTER, FORWARD, RIGHT].
+/// \example Check status of the buttons:
+///     buttonsStatus = btn.get_status()
+///     print(buttonsStatus) # [0, 0, 1, 0, 0]: Center button pressed.
+/// \endexample
 mp_obj_t buttons_get_status_values(mp_obj_t self_in) {
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(5, NULL));
     uint8_t* status = Buttons_GetStatus();
@@ -74,8 +82,11 @@ mp_obj_t buttons_get_status_values(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(buttons_get_status_values_obj, buttons_get_status_values);
 
-/// \method buttons_get_raw()
-/// Get raw value buttons. The returned list correspond to [BACKWARD, LEFT, CENTER, FORWARD, RIGHT].
+/// \method get_raw()
+/// Get buttons raw values read from the touch pad peripheral. The returned list correspond to [BACKWARD, LEFT, CENTER, FORWARD, RIGHT].
+/// \example Check raw values of the buttons:
+///     buttonsRaw = btn.get_raw()
+/// \endexample
 mp_obj_t buttons_get_raw_values(mp_obj_t self_in) {
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(5, NULL));
     uint16_t* raw = Buttons_GetRaw();
@@ -86,8 +97,11 @@ mp_obj_t buttons_get_raw_values(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(buttons_get_raw_values_obj, buttons_get_raw_values);
 
-/// \method buttons_get_filtered()
-/// Get filtered value buttons. The returned list correspond to [BACKWARD, LEFT, CENTER, FORWARD, RIGHT].
+/// \method get_filtered()
+/// Get buttons filtered values used internally to distinguish button presses. The returned list correspond to [BACKWARD, LEFT, CENTER, FORWARD, RIGHT].
+/// \example Check filtered values of the buttons:
+///     buttonsFilt = btn.get_filtered()
+/// \endexample
 mp_obj_t buttons_get_filtered_values(mp_obj_t self_in) {
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(5, NULL));
     uint16_t* filtered = Buttons_GetFiltered();

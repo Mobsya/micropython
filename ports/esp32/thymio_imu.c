@@ -42,7 +42,7 @@ STATIC T_Settings Setting;
 /// \moduleref thymio
 /// \class IMU - IMU object
 ///
-/// The IMU object get imu accelerometer and gyroscope values.
+/// The Inertial Measurement Unit (IMU) refers to the set of accelerometer and gyroscope inside the Thymio 3 robot, capable of detecting movements and orientation.
 
 typedef struct _thymio_imu_obj_t {
     mp_obj_base_t base;
@@ -123,6 +123,10 @@ void imu_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) 
 
 /// \classmethod \constructor()
 /// Create a IMU object:
+/// \example Create a IMU object
+///     import thymio
+///     imu = thymio.IMU()
+/// \endexample
 STATIC mp_obj_t imu_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     thymio_imu_obj_t *imu = m_new_obj(thymio_imu_obj_t);
     imu->base.type = &thymio_imu_type;
@@ -130,8 +134,11 @@ STATIC mp_obj_t imu_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_
     return MP_OBJ_FROM_PTR(imu);
 }
 
-/// \method imu_get_acc()
-/// Get raw accelerometer values. Values between -32768 and 32767 (scale = +- 2g).
+/// \method get_acc()
+/// Get raw accelerometer values [x,y,z]. Values between -32768 and 32767 (scale = +- 2g).
+/// \example Print raw accelerometer values:
+///     print("acc raw: " + str(imu.get_acc()))
+/// \endexample
 mp_obj_t imu_get_acceleration(mp_obj_t self_in) {
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(3, NULL));
     acc_temp = imu_get_acc();
@@ -142,8 +149,11 @@ mp_obj_t imu_get_acceleration(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_get_acceleration_obj, imu_get_acceleration);
 
-/// \method imu_get_gyro()
-/// Get raw gyroscope values. Values between -32768 and 32767 (scale = +- 500 dps).
+/// \method get_gyro()
+/// Get raw gyroscope values [x,y,z]. Values between -32768 and 32767 (scale = +- 500 dps).
+/// \example Print raw gyroscope values:
+///     print("gyro raw: " + str(imu.get_gyro()))
+/// \endexample
 mp_obj_t imu_get_gyroscope(mp_obj_t self_in) {
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(3, NULL));
     gyro_temp = imu_get_gyro();
@@ -154,23 +164,32 @@ mp_obj_t imu_get_gyroscope(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_get_gyroscope_obj, imu_get_gyroscope);
 
-/// \method imu_get_angle_deg()
-/// Get yaw angle in degrees.
+/// \method get_angle_deg()
+/// Get yaw angle in degrees (orientation of the robot).
+/// \example Print orientation of the robot in degrees:
+///     print("angle: " + str(imu.get_angle_deg()))
+/// \endexample
 mp_obj_t imu_get_angle_deg_(mp_obj_t self_in) {
     return mp_obj_new_int(imu_get_angle_deg());
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_get_angle_deg_obj, imu_get_angle_deg_);
 
-/// \method imu_reset_angle()
+/// \method reset_angle()
 /// Reset the angle (set degrees to 0).
+/// \example Reset the angle of the robot to 0 degrees:
+///     imu.reset_angle()
+/// \endexample
 mp_obj_t imu_reset_angle_(mp_obj_t self_in) {
     imu_reset_angle();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_reset_angle_obj, imu_reset_angle_);
 
-/// \method imu_get_gyro_calibration()
-/// Get gyroscope offsets calibration values [x, y, z].
+/// \method get_gyro_calib()
+/// Get gyroscope offsets calibration values [x,y,z].
+/// \example Print gyroscope offsets calibration values:
+///     print("gyro calibration: " + str(imu.get_gyro_calibration()))
+/// \endexample
 mp_obj_t imu_get_gyro_calibration_(mp_obj_t self_in) {
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(3, NULL));
     imu_get_gyro_calibration(calib_temp);
@@ -181,25 +200,36 @@ mp_obj_t imu_get_gyro_calibration_(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_get_gyro_calibration_obj, imu_get_gyro_calibration_);
 
-/// \method imu_reset_gyro_calibration()
+/// \method reset_gyro_calib()
 /// Reset the gyroscope offsets calibration values (set to 0).
+/// \example Reset gyroscope offsets calibration values:
+///     imu.reset_gyro_calibration()
+/// \endexample
 mp_obj_t imu_reset_gyro_calibration_(mp_obj_t self_in) {
     imu_reset_gyro_calibration();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_reset_gyro_calibration_obj, imu_reset_gyro_calibration_);
 
-/// \method imu_calibrate_gyro()
-/// Make a gyroscope offsets calibration, automatic calibration must be disabled before calling this function.
+/// \method calibrate_gyro()
+/// Make a gyroscope offsets calibration, automatic calibration must be disabled before calling this function. Beware that the robot must be kept still during the calibration, otherwise the calibration will be wrong.
+/// \example Calibrate gyroscope offsets:
+///     imu.calibrate_gyro()
+/// \endexample
 mp_obj_t imu_calibrate_gyro_(mp_obj_t self_in) {
     imu_calibrate_gyro();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_calibrate_gyro_obj, imu_calibrate_gyro_);
 
-/// \method imu_rotate_deg()
+/// \method rotate_deg(angle, speed)
 /// Tell the robot to rotate by "angle" degrees (-360..360) at maximum speed "speed" (0..1000).
-/// The robot spins in place; the sign of the angle gives the direction.
+/// The robot spins in place; the sign of the angle gives the direction (positive = counterclockwise, negative = clockwise).
+/// \param angle delta angle in degrees
+/// \param speed maximum rotation speed
+/// \example Rotate the robot by 90 degrees counterclockwise at maximum speed of 200:
+///     imu.rotate_deg(90, 200)
+/// \endexample
 mp_obj_t imu_rotate_deg_(mp_obj_t self_in, mp_obj_t angle, mp_obj_t speed) {
     int a = mp_obj_get_int(angle);
     int s = mp_obj_get_int(speed);
@@ -215,18 +245,23 @@ mp_obj_t imu_rotate_deg_(mp_obj_t self_in, mp_obj_t angle, mp_obj_t speed) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(imu_rotate_deg_obj, imu_rotate_deg_);
 
-/// \method imu_rotate_deg_LR_speeds()
+/// \method rotate_deg_LR_speeds(angle, left_speed, right_speed)
 /// Tell the robot to rotate by "angle" degrees (-360..360) using an arbitrary
 /// speed pair instead of a spin in place. Speeds are in the range -1000..1000
 /// and must differ from each other, otherwise the robot would never turn.
 /// The pair is applied to the motors as given: its sign gives the travel
 /// direction (both positive drives forward, both negative drives backward) and
 /// the difference "right - left" gives the turn, counterclockwise when positive.
-/// (300, 0) is a forward arc to the right, (-300, -100) a backward arc to the
-/// left, (-300, 300) a spin in place.
+/// Examples: (300, 0) is a forward arc to the right, (-300, -100) a backward arc to the left, (-300, 300) a spin in place.
 /// When the requested angle lies the other way, the pair wins and the robot
 /// takes the long way around: rotate_deg_LR_speeds(-90, 0, 200) travels +270
 /// degrees along a forward arc to the left, ending at the requested heading.
+/// \param angle delta angle in degrees
+/// \param left_speed speed of the left wheel
+/// \param right_speed speed of the right wheel
+/// \example Rotate the robot by 90 degrees counterclockwise using a forward arc to the left:
+///     imu.rotate_deg_LR_speeds(90, 200, 400)
+/// \endexample
 mp_obj_t imu_rotate_deg_LR_speeds_(size_t n_args, const mp_obj_t *args) {
     int a = mp_obj_get_int(args[1]);
     int l = mp_obj_get_int(args[2]);
@@ -246,12 +281,17 @@ mp_obj_t imu_rotate_deg_LR_speeds_(size_t n_args, const mp_obj_t *args) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(imu_rotate_deg_LR_speeds_obj, 4, 4, imu_rotate_deg_LR_speeds_);
 
-/// \method imu_rotate_deg_absolute()
+/// \method rotate_deg_absolute()
 /// Tell the robot to rotate to an absolute heading of "angle" degrees at maximum
 /// speed "speed" (0..1000). The heading is referred to the origin set by the last
 /// "reset_angle" call, not to the current orientation, and is not folded into a
 /// single turn: a heading beyond -360..360 is a legitimate request when the robot
 /// accumulated several turns since the last reset.
+/// \param angle absolute angle in degrees
+/// \param speed maximum rotation speed
+/// \example Rotate the robot to an absolute heading of 90 degrees at maximum speed of 200:
+///     imu.rotate_deg_absolute(90, 200)
+/// \endexample
 mp_obj_t imu_rotate_deg_absolute_(mp_obj_t self_in, mp_obj_t angle, mp_obj_t speed) {
     int a = mp_obj_get_int(angle);
     int s = mp_obj_get_int(speed);
@@ -267,14 +307,22 @@ mp_obj_t imu_rotate_deg_absolute_(mp_obj_t self_in, mp_obj_t angle, mp_obj_t spe
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(imu_rotate_deg_absolute_obj, imu_rotate_deg_absolute_);
 
-/// \method imu_rotate_deg_absolute_LR_speeds()
+/// \method rotate_deg_absolute_LR_speeds()
 /// Same as "rotate_deg_absolute", but using an arbitrary speed pair instead of a
 /// spin in place. Speeds are in the range -1000..1000 and must differ from each
 /// other, otherwise the robot would never turn. Passing (-speed, speed) is
 /// equivalent to "rotate_deg_absolute".
-/// The pair is applied to the motors as given; when the target heading lies the
-/// way the pair does not turn to, the robot takes the long way around and still
-/// ends at the requested heading.
+/// The pair is applied to the motors as given: its sign gives the travel
+/// direction (both positive drives forward, both negative drives backward) and
+/// the difference "right - left" gives the turn, counterclockwise when positive.
+/// When the requested angle lies the other way, the pair wins and the robot
+/// takes the long way around.
+/// \param angle absolute angle in degrees
+/// \param left_speed speed of the left wheel
+/// \param right_speed speed of the right wheel
+/// \example Rotate the robot to an absolute heading of 90 degrees using a forward arc to the left:
+///     imu.rotate_deg_absolute_LR_speeds(90, 200, 400)
+/// \endexample
 mp_obj_t imu_rotate_deg_absolute_LR_speeds_(size_t n_args, const mp_obj_t *args) {
     int a = mp_obj_get_int(args[1]);
     int l = mp_obj_get_int(args[2]);
@@ -294,16 +342,25 @@ mp_obj_t imu_rotate_deg_absolute_LR_speeds_(size_t n_args, const mp_obj_t *args)
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(imu_rotate_deg_absolute_LR_speeds_obj, 4, 4, imu_rotate_deg_absolute_LR_speeds_);
 
-/// \method imu_rotation_is_complete()
-/// Tell if the angle controller completed the rotation, i.e. reached the target position given with "rotate_deg".
-/// Return true if the robot reached the target position given by "rotate_deg".
+/// \method rotation_is_complete()
+/// Tell if the angle controller completed the rotation, i.e. reached the target position given with rotation functions.
+/// Return true if the robot reached the target position.
+/// Example: Rotate the robot by 90 degrees counterclockwise at maximum speed of 200 and wait until the rotation is completed:
+///     imu.rotate_deg(90, 200)
+///     while not imu.rotation_is_complete():
+///         pass
+/// \endexample
 mp_obj_t imu_rotation_is_complete_(mp_obj_t self_in) {
     return mp_obj_new_bool(AngleController_Completed());
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_rotation_is_complete_obj, imu_rotation_is_complete_);
 
-/// \method imu_enable_gyro_continuous_calibration()
+/// \method enable_gyro_continuous_calibration()
 /// Enable gyroscope automatic calibration (by default is on).
+/// \example Enable gyroscope automatic calibration:
+///     imu.enable_gyro_continuous_calibration()
+///     time.sleep(3) # Get time to the auto calibration to compute some values
+/// \endexample
 mp_obj_t imu_enable_gyro_continuous_calibration_(mp_obj_t self_in) {
     imu_enable_gyro_continuous_calibration();
     return mp_const_none;
@@ -312,14 +369,24 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_enable_gyro_continuous_calibration_obj, imu
 
 /// \method imu_disable_gyro_continuous_calibration()
 /// Disable gyroscope automatic calibration (by default is on).
+/// \example Disable gyroscope automatic calibration and perform a manual calibration:
+///     imu.disable_gyro_auto_calib()
+///     print("auto calib: " + str(imu.get_gyro_calib())) # Print gyro calibration values computed by "auto calibration"
+///     imu.calibrate_gyro()
+///     print("manual calib: " + str(imu.get_gyro_calib())) # Print gyro clalibration values computed by "manual calibration"
+/// \endexample
 mp_obj_t imu_disable_gyro_continuous_calibration_(mp_obj_t self_in) {
     imu_disable_gyro_continuous_calibration();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_disable_gyro_continuous_calibration_obj, imu_disable_gyro_continuous_calibration_);
 
-/// \method imu_tap_detected()
+/// \method tap_detected()
 /// Return true if a tap is detected, false otherwise. This flag must be cleared using "clear_tap_event".
+/// \example Detect a tap event and clear the event flag:
+///     if imu.tap_detected():
+///         print("tap!")
+///         imu.clear_tap_event()
 mp_obj_t imu_tap_detected_(mp_obj_t self_in) {
     return mp_obj_new_bool(imu_tap_detected());
 }
@@ -333,8 +400,12 @@ mp_obj_t imu_clear_tap_event_(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_clear_tap_event_obj, imu_clear_tap_event_);
 
-/// \method imu_freefall_detected()
+/// \method freefall_detected()
 /// Return true if a free fall is detected, false otherwise. This flag must be cleared using "clear_freefall_event".
+/// \example Detect a freefall event and clear the event flag:
+///     if imu.freefall_detected():
+///         print("freefall!")
+///         imu.clear_freefall_event()
 mp_obj_t imu_freefall_detected_(mp_obj_t self_in) {
     return mp_obj_new_bool(imu_freefall_detected());
 }
@@ -348,17 +419,17 @@ mp_obj_t imu_clear_freefall_event_(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_clear_freefall_event_obj, imu_clear_freefall_event_);
 
-/// \method imu_gyro_calibration_save()
-/// Save gyroscope offsets calibration values.
+/// \method save_gyro_calib()
+/// Save gyroscope offsets calibration values in flash. This function must be called after a manual calibration.
 mp_obj_t imu_gyro_calibration_save(mp_obj_t self_in) {
     Gyroscope_SaveCalibrationOffsets();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_gyro_calibration_save_obj, imu_gyro_calibration_save);
 
-/// \method imu_set_gyro_scale_calibration()
-/// Set gyroscope scale calibration value; 4096 corresponds to 90 degrees (each tick is about 0.022 degrees).
-/// These values will be used until power off.
+/// \method set_gyro_scale_calib(scaling)
+/// Set gyroscope scale calibration value. This value will be used until power off.
+/// \param scaling 4096 corresponds to 90 degrees (each tick is about 0.022 degrees). 
 mp_obj_t imu_set_gyro_scale_calibration(mp_obj_t self_in, mp_obj_t scale)
 {
     Setting.GyroRotFactor = mp_obj_get_int(scale);
@@ -368,7 +439,7 @@ mp_obj_t imu_set_gyro_scale_calibration(mp_obj_t self_in, mp_obj_t scale)
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(imu_set_gyro_scale_calibration_obj, imu_set_gyro_scale_calibration);
 
-/// \method imu_get_gyro_scale_calibration()
+/// \method get_gyro_scale_calib()
 /// Get gyroscope scale calibration value.
 mp_obj_t imu_get_gyro_scale_calibration(mp_obj_t self_in)
 {
@@ -377,7 +448,7 @@ mp_obj_t imu_get_gyro_scale_calibration(mp_obj_t self_in)
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_get_gyro_scale_calibration_obj, imu_get_gyro_scale_calibration);
 
-/// \method imu_save_gyro_scale_calibration()
+/// \method save_gyro_scale_calib()
 /// Save gyroscope scale calibration value in flash.
 mp_obj_t imu_save_gyro_scale_calibration(mp_obj_t self_in)
 {
@@ -386,7 +457,7 @@ mp_obj_t imu_save_gyro_scale_calibration(mp_obj_t self_in)
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_save_gyro_scale_calibration_obj, imu_save_gyro_scale_calibration);
 
-/// \method imu_get_angle_raw()
+/// \method get_angle_raw()
 /// Get raw yaw angle.
 mp_obj_t imu_get_angle_raw(mp_obj_t self_in) {
     return mp_obj_new_int(Gyroscope_GetAngleZ());

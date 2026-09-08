@@ -38,7 +38,7 @@
 /// \moduleref thymio
 /// \class I2C - I2C object
 ///
-/// The I2C object read data from and write data to I2C bus.
+/// Functions that can be used to communicate via I2C to external devices (e.g. external sensors).
 
 typedef struct _thymio_i2c_obj_t {
     mp_obj_base_t base;
@@ -81,19 +81,25 @@ void i2c_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) 
 
 /// \classmethod \constructor()
 /// Create an I2C object:
+/// \example Create a I2C object
+///     import thymio
+///     i2c = thymio.I2C()
+/// \endexample
 STATIC mp_obj_t i2c_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     thymio_i2c_obj_t *i2c = m_new_obj(thymio_i2c_obj_t);
     i2c->base.type = &thymio_i2c_type;
     return MP_OBJ_FROM_PTR(i2c);
 }
 
-/// \method write_reg()
-/// Write to I2C slave register.
-/// Params:
-/// - `device address` 7 bit slave address.
-/// - `register address` this is the start address if more than one byte is written.
-/// - `tx data` data to be transmitted to the slave.
-/// - `tx data size` number of bytes to be transmitted
+/// \method write_reg(dev_addr, reg_addr, data, size)
+/// Write data to a specific register of the specified device.
+/// \param device_address 7 bit slave address.
+/// \param register_address this is the start address if more than one byte is written.
+/// \param tx_data data to be transmitted to the slave.
+/// \param tx_data_size number of bytes to be transmitted
+/// \example Write [0x33, 0x00] to the register 0xAC of device 0x38:
+///     i2c.write_reg(0x38, 0xAC, bytes([0x33, 0x00]), 2)
+/// \endexample
 STATIC mp_obj_t thymio_i2c_write_reg(size_t n_args, const mp_obj_t *args) {
     uint8_t dev_addr = mp_obj_get_int(args[1]);
     uint8_t reg_addr = mp_obj_get_int(args[2]);
@@ -104,12 +110,14 @@ STATIC mp_obj_t thymio_i2c_write_reg(size_t n_args, const mp_obj_t *args) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(thymio_i2c_write_reg_obj, 5, 5, thymio_i2c_write_reg);
 
-/// \method read_reg()
-/// Read from I2C slave register.
-/// Params:
-/// - `device address` 7 bit slave address.
-/// - `register address` this is the start address if more than one byte is read.
-/// - `rx data size` number of bytes to be read from slave
+/// \method read_reg(dev_addr, reg_addr, size)
+/// Read data from a specific register of the specified device.
+/// \param device_address 7 bit slave address.
+/// \param register_address this is the start address if more than one byte is read.
+/// \param rx_data_size number of bytes to be read from slave
+/// \example Read 2 bytes from the register 0xAC of device 0x38:
+///     data = i2c.read_reg(0x38, 0xAC, 2)
+/// \endexample
 STATIC mp_obj_t thymio_i2c_read_reg(size_t n_args, const mp_obj_t *args) {
     uint8_t dev_addr = mp_obj_get_int(args[1]);
     uint8_t reg_addr = mp_obj_get_int(args[2]);
@@ -121,13 +129,12 @@ STATIC mp_obj_t thymio_i2c_read_reg(size_t n_args, const mp_obj_t *args) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(thymio_i2c_read_reg_obj, 4, 4, thymio_i2c_read_reg);
 
-/// \method write_and_read()
+/// \method wr(dev_addr, tx_data, tx_size, rx_size)
 /// Raw write and read: the transmit buffer is sent to the slave and the following received data are returned.
-/// Params:
-/// - `device address` 7 bit slave address.
-/// - `tx data` data to be transmitted to the slave.
-/// - `tx data size` number of bytes to be transmitted
-/// - `rx data size` number of bytes ro be read from slave.
+/// \param device_address 7 bit slave address.
+/// \param tx_data data to be transmitted to the slave.
+/// \param tx_data_size number of bytes to be transmitted
+/// \param rx_data_size number of bytes to be read from slave.
 STATIC mp_obj_t thymio_i2c_wr(size_t n_args, const mp_obj_t *args) {
     byte *rx_data;
     uint8_t dev_addr = mp_obj_get_int(args[1]);
@@ -142,10 +149,9 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(thymio_i2c_wr_obj, 5, 5, thymio_i2c_w
 
 /// \method write()
 /// Raw write to I2C slave: the transmit buffer is sent to the slave.
-/// Params:
-/// - `device address` 7 bit slave address.
-/// - `tx data` data to be transmitted to the slave.
-/// - `tx data size` number of bytes to be transmitted
+/// \param device_address 7 bit slave address.
+/// \param tx_data data to be transmitted to the slave.
+/// \param tx_data_size number of bytes to be transmitted
 STATIC mp_obj_t thymio_i2c_write(size_t n_args, const mp_obj_t *args) {
     uint8_t dev_addr = mp_obj_get_int(args[1]);
     uint16_t size = mp_obj_get_int(args[3]);
@@ -157,9 +163,8 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(thymio_i2c_write_obj, 4, 4, thymio_i2
 
 /// \method read()
 /// Raw read from I2C slave.
-/// Params:
-/// - `device address` 7 bit slave address.
-/// - `rx data size` number of bytes to be read from slave
+/// \param device_address 7 bit slave address.
+/// \param rx_data_size number of bytes to be read from slave
 STATIC mp_obj_t thymio_i2c_read(size_t n_args, const mp_obj_t *args) {
     uint8_t dev_addr = mp_obj_get_int(args[1]);
     uint16_t size = mp_obj_get_int(args[2]);
