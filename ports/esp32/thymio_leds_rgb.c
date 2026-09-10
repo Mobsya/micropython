@@ -178,7 +178,7 @@ void leds_rgb_obj_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind
 }
 
 /// \classmethod \constructor(id)
-/// Create an LEDS RGB associated with the given RGB LED:
+/// Create an object referencing one of the 6 RGB LEDs identificed by "id"
 /// \param id The LED number, 0-5 that corresponds to front-left, front-right, back-left, back-right, bottom, small top-back.
 /// \example Create a RGB LED object for all the RGB LEDs:
 ///     import thymio

@@ -191,7 +191,7 @@ mp_obj_t ground_get_calibration_(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_get_calibration_obj, ground_get_calibration_);
 
-/// \method set_and_save_calibration_from_values(black_left, black_right, white_left, white_right)
+/// \method set_and_save_calibration_from_values([black_left, black_right, white_left, white_right])
 /// Set both ground calibration values and save to flash. These values will be used right away on all the behaviors.
 /// \param black_left, black_right, white_left, white_right - Calibration values for both ground sensors. Range is [0..1023].
 /// \example Set and save both ground calibration values:
@@ -217,7 +217,7 @@ mp_obj_t ground_set_and_save_calibration_from_values_(mp_obj_t self_in, mp_obj_t
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_and_save_calibration_from_values_obj, ground_set_and_save_calibration_from_values_);
 
-/// \method set_calibration_from_values(black_left, black_right, white_left, white_right)
+/// \method set_calibration_from_values([black_left, black_right, white_left, white_right])
 /// Set both ground calibration values without saving to flash. These values will be used right away on all the behaviors, but at next boot they will be reset to the last saved values.
 /// \param black_left, black_right, white_left, white_right - Calibration values for both ground sensors. Range is [0..1023].
 /// \example Set both ground calibration values without saving to flash:

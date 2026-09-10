@@ -33,9 +33,9 @@
 
 
 /// \moduleref thymio
-/// \class LED - LED object
+/// \class BUTTONS LED
 ///
-/// The LED object controls an individual LED (Light Emitting Diode).
+/// Thymio 3 has 4 LEDs near its buttons (towards inside) that provide visual feedback to the user. By default these LEDs are handled by the "leds button" onboard behavior, so if you want to use them you need first to disable this behavior. 
 
 typedef struct _thymio_leds_buttons_obj_t {
     mp_obj_base_t base;
@@ -78,9 +78,15 @@ void leds_buttons_obj_print(const mp_print_t *print, mp_obj_t self_in, mp_print_
 }
 
 /// \classmethod \constructor(id)
-/// Create an LED object associated with the given LED:
-///
-///   - `id` is the LED number, 0-3.
+/// Create an object referencing one of the 4 LEDs identificed by "id".
+/// \param id LED number: 0=front, 1=right, 2=back, 3=left
+/// \example Create a button LED object for all the buttons LEDs:
+///     import thymio
+///     btn_led_front = thymio.LEDS_BUTTONS(0)
+///     btn_led_right = thymio.LEDS_BUTTONS(1)
+///     btn_led_back = thymio.LEDS_BUTTONS(2)
+///     btn_led_left = thymio.LEDS_BUTTONS(3)
+/// \endexample
 STATIC mp_obj_t leds_buttons_obj_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // check arguments
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
@@ -99,6 +105,12 @@ STATIC mp_obj_t leds_buttons_obj_make_new(const mp_obj_type_t *type, size_t n_ar
 
 /// \method on()
 /// Turn the LED on at maximum brightness.
+/// \example Turn on the front button LED at maximum brightness; first disable the "leds button" behavior to be able to control the LED:
+///     import thymio
+///     behav = thymio.BEHAVIORS()
+///     behav.disable_leds_button()
+///     btn_led_front.on()
+/// \endexample
 mp_obj_t leds_buttons_obj_on(mp_obj_t self_in) {
     thymio_leds_buttons_obj_t *self = MP_OBJ_TO_PTR(self_in);
     leds_buttons_set_intensity(self->led_id, MAX_BRIGHTNESS);
@@ -107,6 +119,12 @@ mp_obj_t leds_buttons_obj_on(mp_obj_t self_in) {
 
 /// \method off()
 /// Turn the LED off.
+/// \example Turn off the front button LED; first disable the "leds button" behavior to be able to control the LED:
+///     import thymio
+///     behav = thymio.BEHAVIORS()
+///     behav.disable_leds_button()
+///     btn_led_front.off()
+/// \endexample
 mp_obj_t leds_buttons_obj_off(mp_obj_t self_in) {
     thymio_leds_buttons_obj_t *self = MP_OBJ_TO_PTR(self_in);
     leds_buttons_set_intensity(self->led_id, 0);
@@ -117,6 +135,12 @@ mp_obj_t leds_buttons_obj_off(mp_obj_t self_in) {
 /// Get or set the LED intensity.  Intensity ranges between 0 (off) and 16 (full on).
 /// If no argument is given, return the current LED intensity.
 /// If an argument is given, set the LED intensity and return `None`.
+/// \example Set the front button LED at half brightness; first disable the "leds button" behavior to be able to control the LED:
+///     import thymio
+///     behav = thymio.BEHAVIORS()
+///     behav.disable_leds_button()
+///     btn_led_front.intensity(8)
+/// \endexample
 mp_obj_t leds_buttons_obj_intensity(size_t n_args, const mp_obj_t *args) {
     thymio_leds_buttons_obj_t *self = MP_OBJ_TO_PTR(args[0]);
     if (n_args == 1) {

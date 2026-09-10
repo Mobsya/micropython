@@ -33,9 +33,9 @@
 
 
 /// \moduleref thymio
-/// \class LED - LED object
+/// \class CIRCLE LEDS
 ///
-/// The LED object controls an individual LED (Light Emitting Diode).
+/// Thymio 3 has 8 LEDs around its buttons that provide visual feedback to the user.
 
 typedef struct _thymio_leds_circle_obj_t {
     mp_obj_base_t base;
@@ -82,9 +82,19 @@ void leds_circle_obj_print(const mp_print_t *print, mp_obj_t self_in, mp_print_k
 }
 
 /// \classmethod \constructor(id)
-/// Create an LED object associated with the given LED:
-///
-///   - `id` is the LED number, 0-7.
+/// Create an object referencing one of the 8 LEDs identificed by "id".
+/// \param id LED number: 0=front, 1=front-right, 2=right, 3=back-right, 4=back, 5=back-left, 6=left, 7=front-left
+/// \example Create a circle LED object for all the circle LEDs:
+///     import thymio
+///     circle_f = thymio.LEDS_CIRCLE(0)
+///     circle_fr = thymio.LEDS_CIRCLE(1)
+///     circle_r = thymio.LEDS_CIRCLE(2)
+///     circle_br = thymio.LEDS_CIRCLE(3)
+///     circle_b = thymio.LEDS_CIRCLE(4)
+///     circle_bl = thymio.LEDS_CIRCLE(5)
+///     circle_l = thymio.LEDS_CIRCLE(6)
+///     circle_fl = thymio.LEDS_CIRCLE(7)
+/// \endexample
 STATIC mp_obj_t leds_circle_obj_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // check arguments
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
@@ -103,6 +113,10 @@ STATIC mp_obj_t leds_circle_obj_make_new(const mp_obj_type_t *type, size_t n_arg
 
 /// \method on()
 /// Turn the LED on at maximum brightness.
+/// \example Turn on the front circle LED at maximum brightness.
+///     import thymio
+///     circle_f.on()
+/// \endexample
 mp_obj_t leds_circle_obj_on(mp_obj_t self_in) {
     thymio_leds_circle_obj_t *self = MP_OBJ_TO_PTR(self_in);
     leds_circle_set_intensity(self->led_id, MAX_BRIGHTNESS);
@@ -111,6 +125,10 @@ mp_obj_t leds_circle_obj_on(mp_obj_t self_in) {
 
 /// \method off()
 /// Turn the LED off.
+/// \example Turn off the front circle LED.
+///     import thymio
+///     circle_f.off()
+/// \endexample
 mp_obj_t leds_circle_obj_off(mp_obj_t self_in) {
     thymio_leds_circle_obj_t *self = MP_OBJ_TO_PTR(self_in);
     leds_circle_set_intensity(self->led_id, 0);
@@ -121,6 +139,10 @@ mp_obj_t leds_circle_obj_off(mp_obj_t self_in) {
 /// Get or set the LED intensity.  Intensity ranges between 0 (off) and 16 (full on).
 /// If no argument is given, return the current LED intensity.
 /// If an argument is given, set the LED intensity and return `None`.
+/// \example Set the front circle LED at half brightness.
+///     import thymio
+///     circle_f.intensity(8)
+/// \endexample
 mp_obj_t leds_circle_obj_intensity(size_t n_args, const mp_obj_t *args) {
     thymio_leds_circle_obj_t *self = MP_OBJ_TO_PTR(args[0]);
     if (n_args == 1) {

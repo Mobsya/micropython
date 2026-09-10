@@ -33,9 +33,9 @@
 
 
 /// \moduleref thymio
-/// \class LED LEGO FRONT - LED LEGO FRONT object
+/// \class LED LEGO FRONT
 ///
-/// The LED LEGO FRONT object controls an individual LED (Light Emitting Diode).
+/// There are two rows of 8 LEDs located on the Lego pieces. This functions control the row in the front.
 
 typedef struct _thymio_leds_lego_front_obj_t {
     mp_obj_base_t base;
@@ -82,9 +82,19 @@ void leds_lego_front_obj_print(const mp_print_t *print, mp_obj_t self_in, mp_pri
 }
 
 /// \classmethod \constructor(id)
-/// Create an LED LEGO FRONT object associated with the given LED LEGO FRONT:
-///
-///   - `id` is the LED number, 0-7.
+/// Create an object referencing one of the 8 LEDs identificed by "id"
+/// \param id LED number: 0 to 7, from left to right
+/// \example Create a Lego LED object for all the front Lego LEDs:
+///     import thymio
+///     lego_f0 = thymio.LEDS_LEGO_FRONT(0)
+///     lego_f1 = thymio.LEDS_LEGO_FRONT(1)
+///     lego_f2 = thymio.LEDS_LEGO_FRONT(2)
+///     lego_f3 = thymio.LEDS_LEGO_FRONT(3)
+///     lego_f4 = thymio.LEDS_LEGO_FRONT(4)
+///     lego_f5 = thymio.LEDS_LEGO_FRONT(5)
+///     lego_f6 = thymio.LEDS_LEGO_FRONT(6)
+///     lego_f7 = thymio.LEDS_LEGO_FRONT(7)
+/// \endexample
 STATIC mp_obj_t leds_lego_front_obj_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // check arguments
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
@@ -103,6 +113,10 @@ STATIC mp_obj_t leds_lego_front_obj_make_new(const mp_obj_type_t *type, size_t n
 
 /// \method on()
 /// Turn the LED on at maximum brightness.
+/// \example Turn on the front Lego first LED at maximum brightness.
+///     import thymio
+///     lego_f0.on()
+/// \endexample
 mp_obj_t leds_lego_front_obj_on(mp_obj_t self_in) {
     thymio_leds_lego_front_obj_t *self = MP_OBJ_TO_PTR(self_in);
     leds_lego_front_set_intensity(self->led_id, MAX_BRIGHTNESS);
@@ -111,6 +125,10 @@ mp_obj_t leds_lego_front_obj_on(mp_obj_t self_in) {
 
 /// \method off()
 /// Turn the LED off.
+/// \example Turn off the front Lego first LED.
+///     import thymio
+///     lego_f0.off()
+/// \endexample
 mp_obj_t leds_lego_front_obj_off(mp_obj_t self_in) {
     thymio_leds_lego_front_obj_t *self = MP_OBJ_TO_PTR(self_in);
     leds_lego_front_set_intensity(self->led_id, 0);
@@ -121,6 +139,10 @@ mp_obj_t leds_lego_front_obj_off(mp_obj_t self_in) {
 /// Get or set the LED intensity.  Intensity ranges between 0 (off) and 16 (full on).
 /// If no argument is given, return the LED intensity.
 /// If an argument is given, set the LED intensity and return `None`.
+/// \example Set the front Lego first LED at half brightness.
+///     import thymio
+///     lego_f0.intensity(8)
+/// \endexample
 mp_obj_t leds_lego_front_obj_intensity(size_t n_args, const mp_obj_t *args) {
     thymio_leds_lego_front_obj_t *self = MP_OBJ_TO_PTR(args[0]);
     if (n_args == 1) {

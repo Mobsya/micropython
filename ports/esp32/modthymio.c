@@ -55,7 +55,6 @@
 #include "thymio_buttons.h"
 #include "thymio_behaviors.h"
 #include "thymio_leds_buttons.h"
-#include "thymio_led_receiver.h"
 #include "thymio_led_mic.h"
 #include "thymio_i2c.h"
 #include "../../../../../main/mode.h"
@@ -112,7 +111,6 @@ STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_BUTTONS), MP_ROM_PTR(&thymio_buttons_type) },
     { MP_ROM_QSTR(MP_QSTR_BEHAVIORS), MP_ROM_PTR(&thymio_behaviors_type) },
     { MP_ROM_QSTR(MP_QSTR_LEDS_BUTTONS), MP_ROM_PTR(&thymio_leds_buttons_type) },
-    { MP_ROM_QSTR(MP_QSTR_LED_RECEIVER), MP_ROM_PTR(&thymio_led_receiver_type) },
     { MP_ROM_QSTR(MP_QSTR_LED_MICROPHONE), MP_ROM_PTR(&thymio_led_microphone_type) },
     { MP_ROM_QSTR(MP_QSTR_I2C), MP_ROM_PTR(&thymio_i2c_type) },
 };

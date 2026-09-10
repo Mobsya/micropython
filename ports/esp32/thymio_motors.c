@@ -34,9 +34,9 @@
 #include "../../../../../main/timer_hw.h"
 
 /// \moduleref thymio
-/// \class MOTORS - MOTORS object
+/// \class MOTORS
 ///
-/// The MOTORS object set and get motors speed.
+/// Thymio 3 is powered by two motors controlled by a PID system, allowing a specific speed to be set for each motor.
 
 typedef struct _thymio_motors_obj_t {
     mp_obj_base_t base;
@@ -149,7 +149,11 @@ void motors_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kin
 }
 
 /// \classmethod \constructor()
-/// Create a MOTORS object associated with the given MOTORS:
+/// Create a motors object associated with both motors:
+/// \example Create a motors object
+///     import thymio
+///     mot = thymio.MOTORS()
+/// \endexample
 STATIC mp_obj_t motors_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     thymio_motors_obj_t *mot = m_new_obj(thymio_motors_obj_t);
     mot->base.type = &thymio_motors_type;
@@ -158,21 +162,32 @@ STATIC mp_obj_t motors_make_new(const mp_obj_type_t *type, size_t n_args, size_t
 }
 
 /// \method get_left_speed()
-/// Get measured left motor speed.
+/// Get left measured motor speed.
+/// \example Print left speed:
+///     print(str(mot.get_left_speed()))
+/// \endexample
 mp_obj_t motors_left_speed(mp_obj_t self_in) {
     return mp_obj_new_int(motors_get_left_speed());
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_left_speed_obj, motors_left_speed);
 
 /// \method get_right_speed()
-/// Get measured right motor speed.
+/// Get right measured motor speed.
+/// \example Print right speed:
+///     print(str(mot.get_right_speed()))
+/// \endexample
 mp_obj_t motors_right_speed(mp_obj_t self_in) {
     return mp_obj_new_int(motors_get_right_speed());
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_right_speed_obj, motors_right_speed);
 
-/// \method set_speed()
-/// Set motors speed. Range is between -1000 and 1000.
+/// \method set_speed(left, speed)
+/// Set speed for both motors. 
+/// \param left motor left speed. Range is between -1000 and 1000.
+/// \param right motor right speed. Range is between -1000 and 1000.
+/// \example Let the robot rotate in place:
+///     mot.set_speed(300, -300)
+/// \endexample
 mp_obj_t motors_set_speed(mp_obj_t self_in, mp_obj_t left, mp_obj_t right) {
     int l = mp_obj_get_int(left);
     int r = mp_obj_get_int(right);
@@ -182,21 +197,21 @@ mp_obj_t motors_set_speed(mp_obj_t self_in, mp_obj_t left, mp_obj_t right) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(motors_set_speed_obj, motors_set_speed);
 
 /// \method get_left_pwm_duty()
-/// Get left PWM duty cycle.
+/// Get left PWM duty cycle (low level value). Range is between -800 and 800.
 mp_obj_t motors_left_pwm(mp_obj_t self_in) {
     return mp_obj_new_int(STM32_GetLeftMotorPwm());
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_left_pwm_obj, motors_left_pwm);
 
 /// \method get_right_pwm_duty()
-/// Get right PWM duty cycle.
+/// Get right PWM duty cycle (low level value). Range is between -800 and 800.
 mp_obj_t motors_right_pwm(mp_obj_t self_in) {
     return mp_obj_new_int(STM32_GetRightMotorPwm());
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_right_pwm_obj, motors_right_pwm);
 
 /// \method get_straight_calibration()
-/// Get straight calibration raw values: [left, right].
+/// Get straight calibration values applied at low level to compensate differences between motors: [left, right].
 mp_obj_t motors_get_straight_calib(mp_obj_t self_in) {
     int16_t left = 0, right = 0;
     motors_get_straight_calibration(&left, &right);
@@ -208,7 +223,7 @@ mp_obj_t motors_get_straight_calib(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_get_straight_calib_obj, motors_get_straight_calib);
 
 /// \method get_distance_calibration()
-/// Get distance calibration raw values: [forward, backward].
+/// Get distance calibration values applied during distance movements: [forward, backward].
 mp_obj_t motors_get_distance_calib(mp_obj_t self_in) {
     uint64_t fw = 0, bw = 0;
     motors_get_distance_calibration(&fw, &bw);
@@ -220,7 +235,7 @@ mp_obj_t motors_get_distance_calib(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_get_distance_calib_obj, motors_get_distance_calib);
 
 /// \method reset_straight_calibration()
-/// Reset straight calibration values to default.
+/// Reset straight calibration values to default. This values will be used until power off.
 mp_obj_t motors_reset_straight_calib(mp_obj_t self_in) {
     motors_reset_straight_calibration();
     return mp_const_none;
@@ -228,26 +243,28 @@ mp_obj_t motors_reset_straight_calib(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_reset_straight_calib_obj, motors_reset_straight_calib);
 
 /// \method reset_distance_calibration()
-/// Reset distance calibration values to default.
+/// Reset distance calibration values to default. These values will be used until power off.
 mp_obj_t motors_reset_distance_calib(mp_obj_t self_in) {
     motors_reset_distance_calibration();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_reset_distance_calib_obj, motors_reset_distance_calib);
 
-/// \method set_straight_calibration()
-/// Set motors straight calibration values. Range is between -50 and +50 (corresponds to -/+ 20%).
-/// Positive values mean compensating left motor (increase left motor and decrease right motor), negative values mean compensating right motor.
-/// These values will be used until power off.
+/// \method set_straight_calibration(left_correction, right_correction)
+/// Set motors straight calibration values. Positive values mean incrementing motor speed, negative values mean decreasing speed. These values will be used until power off.
+/// \param left_correction correction for left motor. Range is between -50 and +50 (corresponds to -/+ 20%).
+/// \param right_correction correction for right motor. Range is between -50 and +50 (corresponds to -/+ 20%).
 mp_obj_t motors_set_straight_calib(mp_obj_t self_in, mp_obj_t corr_left, mp_obj_t corr_right) {
     motors_set_straight_calibration(mp_obj_get_int(corr_left), mp_obj_get_int(corr_right));
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(motors_set_straight_calib_obj, motors_set_straight_calib);
 
-/// \method set_distance_calibration()
-/// Set motors distance calibration values. Range is given in microseconds. Can be different for forward and backward motions.
+/// \method set_distance_calibration(fw_correction, bw_correction)
+/// Set motors distance calibration values. Can be different for forward and backward motions.
 /// These values will be used until power off.
+/// \param fw_correction correction for forward motion. Range is given in microseconds. 
+/// \param bw_correction correction for backward motion. Range is given in microseconds.
 mp_obj_t motors_set_distance_calib(mp_obj_t self_ins, mp_obj_t fw, mp_obj_t bw) {
     motors_set_distance_calibration(mp_obj_get_int(fw), mp_obj_get_int(bw));
     return mp_const_none;
@@ -255,7 +272,7 @@ mp_obj_t motors_set_distance_calib(mp_obj_t self_ins, mp_obj_t fw, mp_obj_t bw) 
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(motors_set_distance_calib_obj, motors_set_distance_calib);
 
 /// \method save_straight_calibration()
-/// Save straight calibration values to flash. The last values set with "set_straight_calibration" will be saved.
+/// Save straight calibration values to flash. The last values set with "set_straight_calibration" will be saved and used also after power off.  
 mp_obj_t motors_save_straight_calib(mp_obj_t self_in) {
     if(motors_save_straight_calibration() < 0)
     {
@@ -266,7 +283,7 @@ mp_obj_t motors_save_straight_calib(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_save_straight_calib_obj, motors_save_straight_calib);
 
 /// \method save_distance_calibration()
-/// Save distance calibration values to flash. The last values set with "set_distance_calibration" will be saved.
+/// Save distance calibration values to flash. The last values set with "set_distance_calibration" will be saved and used also after power off.
 mp_obj_t motors_save_distance_calib(mp_obj_t self_in) {
     if(motors_save_distance_calibration() < 0)
     {
@@ -276,39 +293,47 @@ mp_obj_t motors_save_distance_calib(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_save_distance_calib_obj, motors_save_distance_calib);
 
-/// \method motors_distance_calib_timer_start()
-/// Start the internal timer counter used for distance motion.
+/// \method distance_calib_timer_start()
+/// Start the internal hardware timer counter. When the timer reaches the alarm value set with "distance_calib_timer_set" then the motors are stopped. This timer is used internally for precise distance movements.
+/// \example Rotate the robot in place for excatly 1 second:
+///     import thymio
+///     mot = thymio.MOTORS()
+///     mot.set_speed(200, -200)
+///     mot.distance_calib_timer_set(5000000)
+///     mot.distance_calib_timer_start()
+/// \endexample
 mp_obj_t motors_distance_calib_timer_start(mp_obj_t self_in) {
     TimerHw_Start(1, 1);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_distance_calib_timer_start_obj, motors_distance_calib_timer_start);
 
-/// \method motors_distance_calib_timer_reset()
-/// Reset the internal timer counter used for distance motion.
+/// \method distance_calib_timer_reset()
+/// Reset the internal hardware timer counter. This timer is used internally for precise distance movements.
 mp_obj_t motors_distance_calib_timer_reset(mp_obj_t self_in) {
     TimerHw_Reset_Counter(1, 1);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_distance_calib_timer_reset_obj, motors_distance_calib_timer_reset);
 
-/// \method motors_distance_calib_timer_get()
-/// Get the internal timer counter used for distance motion.
+/// \method distance_calib_timer_get()
+/// Get the internal hardware timer counter: (timer ticks)/5 = microseconds. This timer is used internally for precise distance movements.
 mp_obj_t motors_distance_calib_timer_get(mp_obj_t self_in) {
     return mp_obj_new_int(TimerHw_Get_Counter(1, 1));
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_distance_calib_timer_get_obj, motors_distance_calib_timer_get);
 
-/// \method motors_distance_calib_timer_set()
-/// Set the internal timer counter alarm used for distance motion. Alarm given in microseconds.
+/// \method distance_calib_timer_set(timer_ticks)
+/// Set the internal hardware timer alarm. This timer is used internally for precise distance movements.
+/// \param timer_ticks Alarm given in timer ticks: (timer ticks)/5 = microseconds.
 mp_obj_t motors_distance_calib_timer_set(mp_obj_t self_in, mp_obj_t ticks) {
     TimerHw_Set_Alarm_Ticks(1, 1, mp_obj_get_int(ticks));
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(motors_distance_calib_timer_set_obj, motors_distance_calib_timer_set);
 
-/// \method motors_distance_calib_timer_pause()
-/// Pause the internal timer counter used for distance motion.
+/// \method distance_calib_timer_pause()
+/// Pause the internal hardware timer counter. This timer is used internally for precise distance movements.
 mp_obj_t motors_distance_calib_timer_pause(mp_obj_t self_in) {
     TimerHw_Stop(1, 1);
     return mp_const_none;

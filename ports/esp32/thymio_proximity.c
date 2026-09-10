@@ -33,9 +33,9 @@
 
 
 /// \moduleref thymio
-/// \class PROXIMITY - PROXIMITY object
+/// \class PROXIMITY
 ///
-/// The PROXIMITY object get data from proximity sensors.
+/// Thymio 3 has 5 front proximity sensors and 2 rear proximity sensors. They detect nearby objects.
 
 typedef struct _thymio_proximity_obj_t {
     mp_obj_base_t base;
@@ -69,9 +69,18 @@ void proximity_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t 
 }
 
 /// \classmethod \constructor(id)
-/// Create an PROXIMITY object associated with the given PROXIMITY:
-///
-///   - `id` is the PROXIMITY number, 0-6.
+/// Create an object referencing one of the 7 proximity sensors identified by "id".
+/// \param id proximity number: 0=front left, 1=front center left, 2=front center, 3=front center right, 4=front right, 5=back left, 6=back right
+/// \example Create a proximity object for all the proximity sensors:
+///     import thymio
+///     prox_fl = thymio.PROXIMITY(0)
+///     prox_fcl = thymio.PROXIMITY(1)
+///     prox_fc = thymio.PROXIMITY(2)
+///     prox_fcr = thymio.PROXIMITY(3)
+///     prox_fr = thymio.PROXIMITY(4)
+///     prox_bl = thymio.PROXIMITY(5)
+///     prox_br = thymio.PROXIMITY(6)
+/// \endexample
 STATIC mp_obj_t proximity_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // check arguments
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
@@ -89,29 +98,18 @@ STATIC mp_obj_t proximity_make_new(const mp_obj_type_t *type, size_t n_args, siz
 }
 
 /// \method value()
-/// Get proximity sensor value (the higher the value, the closer the object).
+/// Get proximity sensor value (the higher the value, the closer the object). Range is [0..4095].
+/// \example Print front left sensor value:
+///     print(str(prox_fl.value()))
+/// \endexample
 mp_obj_t proximity_value(mp_obj_t self_in) {
     thymio_proximity_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_int(proximity_get_value(self->prox_id));
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(proximity_value_obj, proximity_value);
 
-/// \method normalized_value()
-/// Get normalized (between 0 and 100) proximity sensor value (the higher the value, the closer the object).
-mp_obj_t proximity_normalized_value(mp_obj_t self_in) {
-    thymio_proximity_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    float temp = proximity_get_value(self->prox_id);
-    float normalized = temp*100.0/3500.0;
-    if(normalized > 100) {
-        normalized = 100;
-    }
-    return mp_obj_new_int((int)normalized);
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(proximity_normalized_value_obj, proximity_normalized_value);
-
 STATIC const mp_rom_map_elem_t proximity_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_value), MP_ROM_PTR(&proximity_value_obj) },
-    { MP_ROM_QSTR(MP_QSTR_normalized_value), MP_ROM_PTR(&proximity_normalized_value_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(proximity_locals_dict, proximity_locals_dict_table);

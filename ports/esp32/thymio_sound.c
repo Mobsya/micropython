@@ -39,9 +39,9 @@
 
 
 /// \moduleref thymio
-/// \class SOUND - SOUND object
+/// \class SOUND
 ///
-/// The SOUND object play and record audio files.
+/// The Thymio 3 robot has audio capabilities that allow it to record and play sounds.
 
 typedef struct _thymio_sound_obj_t {
     mp_obj_base_t base;
@@ -72,15 +72,23 @@ void sound_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind
 }
 
 /// \classmethod \constructor()
-/// Create a SOUND object:
+/// Create an sound object associated with the speaker and microphone.
+/// \example Create a SOUND object
+///     import thymio
+///     sound = thymio.SOUND()
+/// \endexample
 STATIC mp_obj_t sound_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     thymio_sound_obj_t *sound = m_new_obj(thymio_sound_obj_t);
     sound->base.type = &thymio_sound_type;
     return MP_OBJ_FROM_PTR(sound);
 }
 
-/// \method record_wav
-/// Record sound for "sec" seconds in wav format. The data are saved in RAM memory. Max duration is 10 seconds.
+/// \method record(duration)
+/// Start a recording in wav format. The data are saved in RAM memory. Max duration is 10 seconds. During the recording the microphone led (blue led on top) is turned on.
+/// \param duration given in seconds (integer)
+/// \example Record a sound for 5 seconds
+///     sound.record(5)
+/// \endexample
 mp_obj_t sound_record_wav_(mp_obj_t self_in, mp_obj_t sec) {
     int duration = mp_obj_get_int(sec);
     if(duration > 10) {
@@ -93,7 +101,10 @@ mp_obj_t sound_record_wav_(mp_obj_t self_in, mp_obj_t sec) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_record_wav_obj, sound_record_wav_);
 
 /// \method get_mic_volume
-/// Return the volume computed from the microphone.
+/// Return the volume computed from the microphone. Range is from 0 to 1023.
+/// \example Print the current microphone volume
+///     print(str(sound.get_mic_volume()))
+/// \endexample
 mp_obj_t sound_get_mic_volume_(mp_obj_t self_in) {
     return mp_obj_new_int(sound_get_mic_volume());
 }
@@ -114,15 +125,40 @@ mp_obj_t sound_clear_clap_event_(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_clear_clap_event_obj, sound_clear_clap_event_);
 
-/// \method sound_record_is_complete()
+/// \method record_completed()
 /// Tell if the recording is completed.
 /// Return true if the recording is completed.
+/// The onevent decorator can be used to attach custom callbacks at the "record completed" event, specifying the decorator parameter RECORD_COMPLETED.
+/// \example Record a sound for 5 seconds and play it back when the recording is completed using decorator:
+///     import thymio
+///     import uasyncio as asyncio
+///     from thymio_events import ThymioEvents
+///     from thymio_events import onevent
+/// 
+///     te = ThymioEvents()
+///     sound = thymio.SOUND()
+/// 
+///     @onevent("RECORD_COMPLETED")
+///     def record_end():
+///         print("record complete")
+///         sound.play_recorded()
+/// 
+///     async def main():
+///         sound.record(5)
+///         while True:
+///             try:
+///                 await asyncio.sleep(1)
+///             except:
+///                 None
+/// 
+///     asyncio.run(main())
+/// \endexample
 mp_obj_t sound_record_is_complete(mp_obj_t self_in) {
     return mp_obj_new_bool(Codec_IsRecordFinished());
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_record_is_complete_obj, sound_record_is_complete);
 
-/// \method sound_play_is_complete()
+/// \method play_completed()
 /// Tell if the last sound is complete.
 /// Return true if the last sound played is completed. If no sound was played it returns false.
 mp_obj_t sound_play_is_complete(mp_obj_t self_in) {
@@ -131,7 +167,12 @@ mp_obj_t sound_play_is_complete(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_play_is_complete_obj, sound_play_is_complete);
 
 /// \method record_get()
-/// Get the recording data.
+/// Get the recording data so that you can save them to robot storage.
+/// example Save the last recorded sound to a file in robot storage:
+///     f = open('my.wav', 'w')
+///     size = f.write(bytearray(sound.record_get()))  # return number of bytes written
+///     f.close()
+/// \endexample
 STATIC mp_obj_t sound_record_get(mp_obj_t self_in) {
     byte *buf;
     uint32_t recSize = Codec_GetRecordSize();
@@ -141,9 +182,13 @@ STATIC mp_obj_t sound_record_get(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_record_get_obj, sound_record_get);
 
-//! \brief  Play sound file (wav or mp3) from internal robot storage. The sound file must have either ".wav" or ".mp3" extension and in the format: 12KHz sample rate, 16 bits per sample, mono channel.
-//! \param  name of the file
-//! \return None if ok, RuntimeError exception if another sound or recording is already running, ValueError if file not supported.
+/// \method play_from_file(name)
+/// \brief  Play sound file (wav or mp3) from robot storage. The sound file must have either ".wav" or ".mp3" extension and in the format: 12KHz sample rate, 16 bits per sample, mono channel.
+/// \param  name Name of the file
+/// \return None if ok, RuntimeError exception if another sound or recording is already running, ValueError if file not supported.
+/// \example Play a wav:
+///     sound.play_from_file('my.wav')
+/// \endexample
 mp_obj_t sound_play_from_file(mp_obj_t self_in, mp_obj_t name) {
     mp_obj_t file;
     mp_obj_t args[2] = {
@@ -233,9 +278,10 @@ mp_obj_t sound_play_from_file(mp_obj_t self_in, mp_obj_t name) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_play_from_file_obj, sound_play_from_file);
 
-//! \brief     Play the last recorded sound directly from memory.
-//! \param     None
-//! \return    None if ok, RuntimeError exception if another sound or recording is already running.
+/// \method play_recorded()
+/// \brief     Play the last recorded sound directly from memory.
+/// \param     None
+/// \return    None if ok, RuntimeError exception if another sound or recording is already running.
 mp_obj_t sound_play_recorded(mp_obj_t self_in) {
     if(Codec_PlayRecorded() != ESP_OK) {
         mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot play"));
@@ -245,25 +291,10 @@ mp_obj_t sound_play_recorded(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_play_recorded_obj, sound_play_recorded);
 
-//! \brief  Play onboard sound (the ones pre-built in the robot firmware).
-//! \param  The ind parameter identifies the correct sound to play:
-//!         0 = magic,
-//!         1 = Tick,
-//!         2 = Blop,
-//!         3 = Fall,
-//!         4 = Detection,
-//!         5 = Bye,
-//!         6 = C3,
-//!         7 = D3,
-//!         8 = E3,
-//!         9 = F3,
-//!         10 = G3,
-//!         11 = A3,
-//!         12 = B3,
-//!         13 = Alarm,
-//!         14 = Good,
-//!         15 = Bad
-//! \return None if ok, RuntimeError exception if another sound or recording is already running.
+/// \method play_onboard(id)
+/// \brief  Play onboard sound (the ones pre-built in the robot firmware).
+/// \param  id The id parameter identifies the correct sound to play: 0=alarm, 1=bad, 2=battery low, 3=beep, 4=sequence delete all, 5=sequence delete last, 6=sequence end path, 7=bluetooth connection, 8=code error, 9=code exec success, 10=detect, 11=draw end, 12=arrows, 13-18=balafon notes, 19-24=flute notes, 25-30=guitar notes, 31-36=orchestra notes, 37-42=piano notes, 43-48=violin notes, 49=intro, 50=notify, 51=outro, 52=red freefall, 53=red prisoner, 54=red tap, 55=rotate
+/// \return None if ok, RuntimeError exception if another sound or recording is already running.
 mp_obj_t sound_play_onboard(mp_obj_t self_in, mp_obj_t ind) {
     int index = mp_obj_get_int(ind);
     if(Codec_PlayOnboardSound(index) != ESP_OK) {
@@ -274,9 +305,10 @@ mp_obj_t sound_play_onboard(mp_obj_t self_in, mp_obj_t ind) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_play_onboard_obj, sound_play_onboard);
 
-//! \brief     Pause any running sound play (can be resumed with "resume").
-//! \param     None
-//! \return    None if ok, RuntimeError exception if no sound is running.
+/// \method pause()
+/// \brief     Pause any running sound (can be resumed with "resume").
+/// \param     None
+/// \return    None if ok, RuntimeError exception if no sound is running.
 mp_obj_t sound_pause(mp_obj_t self_in) {
     if(Codec_Pause() != ESP_OK) {
         mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot pause"));
@@ -286,9 +318,10 @@ mp_obj_t sound_pause(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_pause_obj, sound_pause);
 
-//! \brief     Resume a previously paused (with "pause") sound play.
-//! \param     None
-//! \return    None if ok, RuntimeError exception if no sound was paused.
+/// \method resume()
+/// \brief     Resume a previously paused (with "pause") sound play.
+/// \param     None
+/// \return    None if ok, RuntimeError exception if no sound was paused.
 mp_obj_t sound_resume(mp_obj_t self_in) {
     if(Codec_Resume() != ESP_OK) {
         mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot resume"));
@@ -298,9 +331,10 @@ mp_obj_t sound_resume(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_resume_obj, sound_resume);
 
-//! \brief     Set the play volume.
-//! \param     Volume Between 0 and 10.
-//! \return    None
+/// \method set_volume(volume)
+/// \brief     Set the play volume.
+/// \param     volume Between 0 and 10.
+/// \return    None
 mp_obj_t sound_set_volume(mp_obj_t self_in, mp_obj_t vol) {
     int volume = mp_obj_get_int(vol);
     if((volume > 10) || (volume < 0)) {
@@ -313,37 +347,44 @@ mp_obj_t sound_set_volume(mp_obj_t self_in, mp_obj_t vol) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_set_volume_obj, sound_set_volume);
 
-//! \brief     Store the current volume value in the permanent settings. The volume setting will be used when the robot is turned on next times.
-//! \param     None
-//! \return    None
+/// \method save_volume()
+/// \brief     Store the current volume value in the permanent settings. The volume setting will be used when the robot is turned on next times.
+/// \param     None
+/// \return    None
 mp_obj_t sound_save_volume(mp_obj_t self_in) {
     Settings_WriteVolume(Settings_GetVolumeSettings());
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_save_volume_obj, sound_save_volume);
 
-//! \brief     Clear audio events (played and recorded).
-//! \param     None
-//! \return    None
+/// \method clear_events()
+/// \brief     Clear all audio events ("play completed" and "recording completed").
+/// \param     None
+/// \return    None
 mp_obj_t sound_clear_events(mp_obj_t self_in) {
     
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_clear_events_obj, sound_clear_events);
 
-//! \brief     Stop any running sound play (cannot be resumed).
-//! \param     None
-//! \return    None.
+/// \method stop()
+/// \brief     Stop any running sound play (cannot be resumed).
+/// \param     None
+/// \return    None.
 mp_obj_t sound_stop(mp_obj_t self_in) {
     Codec_Stop();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_stop_obj, sound_stop);
 
-//! \brief  Play a single tone.
-//! \param  freq - frequency in [Hz], limited to 3 KHz; 0 means silence
-//! \param  duration - duration in tenths of a second; 0 means play forever (until "stop")
-//! \return None if ok, RuntimeError exception if another sound or recording is already running.
+/// \method play_tone(frequency, duration)
+/// \brief  Play a single tone.
+/// \param  frequency - frequency in [Hz], limited to 3 KHz; 0 means silence
+/// \param  duration - duration in tenths of a second; 0 means play forever (until "stop")
+/// \return None if ok, RuntimeError exception if another sound or recording is already running.
+/// \example Play a 440 Hz tone for 1 second
+///     sound.play_tone(440, 10)
+/// \endexample
 mp_obj_t sound_play_tone(mp_obj_t self_in, mp_obj_t freq, mp_obj_t duration) {
     T_ToneNote note;
     int dur = mp_obj_get_int(duration);
@@ -357,15 +398,18 @@ mp_obj_t sound_play_tone(mp_obj_t self_in, mp_obj_t freq, mp_obj_t duration) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(sound_play_tone_obj, sound_play_tone);
 
-
-//! \brief  Play a melody of up to TONE_MELODY_MAX_NOTES notes; the melody is played up to the end without interruptions.
-//!         The two lists must have the same length, for instance:
-//!           play_melody([262, 330, 392], [2, 2, 4])
-//! \param  freqs - list (or tuple) of frequencies in [Hz], limited to 3 KHz; 0 means silence (rest)
-//! \param  durations - list (or tuple) of durations in tenths of a second; 0 means play forever
-//!                     (only meaningful for the last note)
-//! \return None if ok, RuntimeError exception if another sound or recording is already running,
-//!         ValueError if the lists are not correctly specified.
+/// \method play_melody(freqs, durations)
+/// \brief  Play a melody of up to TONE_MELODY_MAX_NOTES notes; the melody is played up to the end without interruptions.
+///         The two lists must have the same length, for instance:
+///           play_melody([262, 330, 392], [2, 2, 4])
+/// \param  freqs - list (or tuple) of frequencies in [Hz], limited to 3 KHz; 0 means silence (rest)
+/// \param  durations - list (or tuple) of durations in tenths of a second; 0 means play forever
+///                     (only meaningful for the last note)
+/// \return None if ok, RuntimeError exception if another sound or recording is already running,
+///         ValueError if the lists are not correctly specified.
+/// \example Play a melody of 3 notes: C4, E4, G4
+///     sound.play_melody([262, 330, 392], [2, 2, 4])
+/// \endexample
 STATIC mp_obj_t sound_play_melody(mp_obj_t self_in, mp_obj_t freqs, mp_obj_t durations) {
     T_ToneNote notes[TONE_MELODY_MAX_NOTES];
     size_t freqsLen = 0, durationsLen = 0;
