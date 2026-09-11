@@ -33,9 +33,9 @@
 
 
 /// \moduleref thymio
-/// \class LED - LED object
+/// \class MICROPHONE LED
 ///
-/// The LED object controls an individual LED (Light Emitting Diode).
+/// The Thymio 3 has a LED near the microphone that can be controlled. If you want to use this LED, be sure to first disable the "led microphone" onboard behavior.
 
 typedef struct _thymio_led_microphone_obj_t {
     mp_obj_base_t base;
@@ -54,7 +54,11 @@ void led_microphone_obj_print(const mp_print_t *print, mp_obj_t self_in, mp_prin
 }
 
 /// \classmethod \constructor(id)
-/// Create an LED object associated with the given LED:
+/// Create an object referencing the microphone LED.
+/// \example Create a microphone LED object:
+///     import thymio
+///     mic_led = thymio.LED_MICROPHONE()
+/// \endexample
 STATIC mp_obj_t led_microphone_obj_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     thymio_led_microphone_obj_t *led = m_new_obj(thymio_led_microphone_obj_t);
     led->base.type = &thymio_led_microphone_type;
@@ -62,22 +66,21 @@ STATIC mp_obj_t led_microphone_obj_make_new(const mp_obj_type_t *type, size_t n_
 }
 
 /// \method on()
-/// Turn the LED on at maximum brightness.
+/// Turn the microphone LED on at maximum brightness; first disable the "led microphone" behavior to be able to control the LED.
 mp_obj_t led_microphone_obj_on(mp_obj_t self_in) {
     Behavior_Disable(B_LED_MIC);
     Behavior_Enable(B_LED_MIC_STATE); // Turn off mic led
     return mp_const_none;
 }
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(led_microphone_obj_on_obj, led_microphone_obj_on);
 
 /// \method off()
-/// Turn the LED off.
+/// Turn the color sensor LED off; first disable the "led microphone" behavior to be able to control the LED.
 mp_obj_t led_microphone_obj_off(mp_obj_t self_in) {
     Behavior_Disable(B_LED_MIC);
     Behavior_Disable(B_LED_MIC_STATE); // Turn off mic led
     return mp_const_none;
 }
-
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(led_microphone_obj_on_obj, led_microphone_obj_on);
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(led_microphone_obj_off_obj, led_microphone_obj_off);
 
 STATIC const mp_rom_map_elem_t led_microphone_locals_dict_table[] = {

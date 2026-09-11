@@ -157,50 +157,12 @@ mp_obj_t color_sensor_calibrate_and_save_black(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_calibrate_and_save_black_obj, color_sensor_calibrate_and_save_black);
 
-/// \method led_on()
-/// Turn the color sensor LED on at maximum brightness. Beware that the color sensor need the LED to be on to detect colors.
-mp_obj_t led_color_obj_on(mp_obj_t self_in) {
-    Leds_SetSingleBrightness(E_Led_White_Sensor, MAX_BRIGHTNESS);
-    return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(led_color_obj_on_obj, led_color_obj_on);
-
-/// \method led_off()
-/// Turn the color sensor LED off. Beware that the color sensor need the LED to be on to detect colors.
-mp_obj_t led_color_obj_off(mp_obj_t self_in) {
-    Leds_SetSingleBrightness(E_Led_White_Sensor, 0);
-    return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(led_color_obj_off_obj, led_color_obj_off);
-
-/// \method led_intensity([value])
-/// Get or set the color sensor LED intensity.  Intensity ranges between 0 (off) and 16 (full on).
-/// If no argument is given, return the current LED intensity.
-/// If an argument is given, set the LED intensity and return `None`.
-/// Beware that the color sensor need the LED to be on to detect colors.
-mp_obj_t led_color_obj_intensity(size_t n_args, const mp_obj_t *args) {
-    if (n_args == 1) {
-        return mp_obj_new_int(Leds_GetBrightness(E_Led_White_Sensor));
-    } else {
-        int intensity = mp_obj_get_int(args[1]);
-        if(intensity > MAX_BRIGHTNESS) {
-            intensity = MAX_BRIGHTNESS;
-        }
-        Leds_SetSingleBrightness(E_Led_White_Sensor, intensity);
-        return mp_const_none;
-    }
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(led_color_obj_intensity_obj, 1, 2, led_color_obj_intensity);
-
 STATIC const mp_rom_map_elem_t color_sensor_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_hsv), MP_ROM_PTR(&color_sensor_get_hsv_values_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_raw), MP_ROM_PTR(&color_sensor_get_raw_values_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_calibration), MP_ROM_PTR(&color_sensor_get_calibration_obj) },
     { MP_ROM_QSTR(MP_QSTR_calibrate_and_save_white), MP_ROM_PTR(&color_sensor_calibrate_and_save_white_obj) },
     { MP_ROM_QSTR(MP_QSTR_calibrate_and_save_black), MP_ROM_PTR(&color_sensor_calibrate_and_save_black_obj) },
-    { MP_ROM_QSTR(MP_QSTR_led_on), MP_ROM_PTR(&led_color_obj_on_obj) },
-    { MP_ROM_QSTR(MP_QSTR_led_off), MP_ROM_PTR(&led_color_obj_off_obj) },
-    { MP_ROM_QSTR(MP_QSTR_led_intensity), MP_ROM_PTR(&led_color_obj_intensity_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(color_sensor_locals_dict, color_sensor_locals_dict_table);

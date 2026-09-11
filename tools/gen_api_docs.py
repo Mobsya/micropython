@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate the Thymio MicroPython API reference from the C sources.
+Generate the Thymio 3 MicroPython API reference from the C sources.
 
 The generator does not trust the names written in the `///` comments: the public
 name of every method is read from the `..._locals_dict_table` arrays, which are
@@ -1190,13 +1190,13 @@ def api_to_json(api: dict) -> str:
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="Generate the Thymio MicroPython API reference.")
+    parser = argparse.ArgumentParser(description="Generate the Thymio 3 MicroPython API reference.")
     parser.add_argument("source_dir", nargs="?", default=".", help="folder holding the C sources")
     parser.add_argument("-o", "--output", default="site", help="output folder (default: site)")
     parser.add_argument("--module", default="thymio", help="MicroPython module name")
     parser.add_argument("--module-file", default="modthymio.c", help="file holding the module table")
     parser.add_argument("--prefix", default="thymio_", help="prefix of the class source files")
-    parser.add_argument("--title", default="Thymio MicroPython API")
+    parser.add_argument("--title", default="Thymio 3 MicroPython API")
     parser.add_argument("--subtitle", default="Reference for the thymio module of the Thymio 3 firmware.")
     parser.add_argument(
         "--pdf",

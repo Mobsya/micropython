@@ -37,7 +37,7 @@ int16_t toggle = -1;
 /// \moduleref thymio
 /// \class RC5
 ///
-/// Thymio 3 has an infrared receiver that allows it to receive commands from standard TV remote controls and it has also a TV remote receiver LED near the receiver that provides visual feedback to the user. If you want to use this LED, be sure to first disable the "led receiver" onboard behavior.
+/// Thymio 3 has an infrared receiver that allows it to receive commands from standard TV remote controls.
 
 typedef struct _thymio_rc5_obj_t {
     mp_obj_base_t base;
@@ -89,64 +89,9 @@ mp_obj_t rc5_obj_get_address(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(rc5_obj_get_address_obj, rc5_obj_get_address);
 
-/// \method led_on()
-/// Turn the LED on at maximum brightness.
-/// \example Turn on the LED at maximum brightness; first disable the "leds receiver" behavior to be able to control the LED.
-///     import thymio
-///     behav = thymio.BEHAVIORS()
-///     behav.disable_led_receiver()
-///     rc5.led_on()
-/// \endexample; 
-mp_obj_t led_receiver_obj_on(mp_obj_t self_in) {
-    Leds_SetSingleBrightness(E_Led_RC5, MAX_BRIGHTNESS);
-    return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(led_receiver_obj_on_obj, led_receiver_obj_on);
-
-/// \method led_off()
-/// Turn the LED off.
-/// \example Turn off the LED; first disable the "leds receiver" behavior to be able to control the LED.
-///     import thymio
-///     behav = thymio.BEHAVIORS()
-///     behav.disable_led_receiver()
-///     rc5.led_off()
-/// \endexample; 
-mp_obj_t led_receiver_obj_off(mp_obj_t self_in) {
-    Leds_SetSingleBrightness(E_Led_RC5, 0);
-    return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(led_receiver_obj_off_obj, led_receiver_obj_off);
-
-/// \method led_intensity([value])
-/// Get or set the LED intensity.  Intensity ranges between 0 (off) and 16 (full on).
-/// If no argument is given, return the current LED intensity.
-/// If an argument is given, set the LED intensity and return `None`.
-/// \example Set the LED at half brightness; first disable the "leds receiver" behavior to be able to control the LED.
-///     import thymio
-///     behav = thymio.BEHAVIORS()
-///     behav.disable_led_receiver()
-///     rc5.led_intensity(8)
-/// \endexample; 
-mp_obj_t led_receiver_obj_intensity(size_t n_args, const mp_obj_t *args) {
-    if (n_args == 1) {
-        return mp_obj_new_int(Leds_GetBrightness(E_Led_RC5));
-    } else {
-        int intensity = mp_obj_get_int(args[1]);
-        if(intensity > MAX_BRIGHTNESS) {
-            intensity = MAX_BRIGHTNESS;
-        }
-        Leds_SetSingleBrightness(E_Led_RC5, intensity);
-        return mp_const_none;
-    }
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(led_receiver_obj_intensity_obj, 1, 2, led_receiver_obj_intensity);
-
 STATIC const mp_rom_map_elem_t rc5_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_command), MP_ROM_PTR(&rc5_obj_get_command_obj) },
-    { MP_ROM_QSTR(MP_QSTR_get_address), MP_ROM_PTR(&rc5_obj_get_address_obj) },
-    { MP_ROM_QSTR(MP_QSTR_led_on), MP_ROM_PTR(&led_receiver_obj_on_obj) },
-    { MP_ROM_QSTR(MP_QSTR_led_off), MP_ROM_PTR(&led_receiver_obj_off_obj) },
-    { MP_ROM_QSTR(MP_QSTR_led_intensity), MP_ROM_PTR(&led_receiver_obj_intensity_obj) },    
+    { MP_ROM_QSTR(MP_QSTR_get_address), MP_ROM_PTR(&rc5_obj_get_address_obj) },   
 };
 
 STATIC MP_DEFINE_CONST_DICT(rc5_locals_dict, rc5_locals_dict_table);
